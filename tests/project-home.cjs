@@ -4,7 +4,7 @@ const store={projects:[{id:'d1'},{id:'d2'}],nav:'project',demand:'d1',tab:'home'
 const context={store,set:patch=>Object.assign(store,patch)};
 vm.createContext(context);vm.runInContext(src.slice(src.indexOf('  function openProjectSpace('),src.indexOf('  function ProjectHomeCards('))+'\nthis.api={projectTaskDestination,subscribeProjectNavigation}',context);
 const {projectTaskDestination:route,subscribeProjectNavigation:subscribe}=context.api;
-for(const [input,want] of [['帮我生成专家画像和岗位JD','recruitment'],['请解析甲方需求','recruitment'],['按画像匹配专家','p3'],['请打开匹配看板。仅演示导航，不要执行工具或修改文件，回复收到即可。','p3'],['你好',null],['我下一步做什么',null],['如何匹配专家',null],['不要生成JD',null],['生成JD，然后匹配专家',null]]) assert.equal(route(input),want,input);
+for(const [input,want] of [['打开岗位要求','recruitment'],['打开专家匹配','p3'],['帮我生成专家画像和岗位JD','recruitment'],['请解析甲方需求','recruitment'],['按画像匹配专家','p3'],['请打开匹配看板。仅演示导航，不要执行工具或修改文件，回复收到即可。','p3'],['你好',null],['我下一步做什么',null],['如何匹配专家',null],['不要生成JD',null],['生成JD，然后匹配专家',null]]) assert.equal(route(input),want,input);
 let snapshot={entries:[],change:null},listeners=new Set();
 const source={getSnapshot:()=>snapshot,subscribe:fn=>{listeners.add(fn);return()=>listeners.delete(fn)}};
 const entry=(seq,text,type='user/message',kind='user')=>({event:{seq,type,data:{source:{kind},content:[{type:'text',text}]}}});
