@@ -1,0 +1,30 @@
+{
+  "name": "dsh-expert-ops",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "专家运营工作台：需求解析、专家画像、三态匹配看板（mock 数据）",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./client": "./lib/client.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "lib/client.js"
+  ],
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-theme"
+      ]
+    }
+  },
+  "license": "MIT"
+}

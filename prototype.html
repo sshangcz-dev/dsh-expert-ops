@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>专家运营工作台 · 原型 v0.2</title>
+<style>
+  :root{
+    --bg:#f7f8fa; --panel:#fff; --line:#e6e8ec; --line2:#eef0f3;
+    --text:#15171c; --sub:#6b7280; --faint:#9ca3af;
+    --accent:#2563eb; --accent-soft:#eef4ff;
+    --green:#059669; --green-soft:#ecfdf5; --amber:#b45309; --amber-soft:#fffbeb;
+    --red:#b91c1c; --red-soft:#fef2f2;
+    --shadow:0 1px 2px rgba(16,24,40,.05),0 10px 28px rgba(16,24,40,.06);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font:13.5px/1.55 -apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif;color:var(--text);background:var(--bg);overflow:hidden}
+  button{font:inherit;cursor:pointer;color:inherit}
+  .app{display:grid;grid-template-columns:248px 1fr;height:100vh}
+
+  /* ============ 左栏：功能 ============ */
+  .left{background:#fbfbfc;border-right:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+  .brand{display:flex;align-items:center;gap:9px;padding:16px 16px 12px;font-weight:680;letter-spacing:.2px}
+  .brand .dot{width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,#2563eb,#7c3aed)}
+  .brand small{font-weight:500;color:var(--faint);font-size:11px;margin-left:auto}
+
+  .nav{padding:4px 8px}
+  .nav button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:8px;color:#374151;font-size:13.5px}
+  .nav button:hover{background:#f1f2f5}
+  .nav button.on{background:#eceef2;font-weight:600}
+  .nav .ico{width:16px;height:16px;display:grid;place-items:center;color:var(--faint);font-size:12px}
+  .nav button.on .ico{color:var(--accent)}
+
+  .sec{display:flex;align-items:center;justify-content:space-between;padding:14px 16px 6px;color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+  .sec a{color:var(--faint);text-decoration:none;font-size:14px;padding:0 3px}
+  .demands{padding:0 8px;overflow:auto;flex:1;min-height:0}
+  .demand{display:block;width:100%;text-align:left;border:1px solid transparent;background:transparent;padding:9px 10px;border-radius:9px;margin-bottom:2px}
+  .demand:hover{background:#f1f2f5}
+  .demand.on{background:#fff;border-color:var(--line);box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .demand b{display:block;font-size:12.8px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .demand span{display:flex;align-items:center;gap:6px;color:var(--sub);font-size:11.5px;margin-top:3px}
+  .sdot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+  .sdot.draft{background:var(--faint)} .sdot.warn{background:#f59e0b}
+
+  .newbtn{margin:8px;border:1px dashed #cfd4dc;background:#fff;color:var(--sub);padding:8px;border-radius:9px;font-size:12.5px}
+  .newbtn:hover{border-color:var(--accent);color:var(--accent)}
+  .me{display:flex;align-items:center;gap:9px;padding:12px 16px;border-top:1px solid var(--line);color:var(--sub);font-size:12px}
+  .avatar{width:26px;height:26px;border-radius:50%;background:#dbeafe;color:#1d4ed8;display:grid;place-items:center;font-size:11.5px;font-weight:700}
+
+  /* ============ 右栏 ============ */
+  .right{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--bg)}
+  .rhead{background:#fff;border-bottom:1px solid var(--line);padding:12px 20px 0}
+  .htop{display:flex;align-items:flex-start;gap:14px}
+  h1{font-size:16.5px;margin:0;font-weight:680}
+  .meta{color:var(--sub);font-size:12px;display:flex;gap:12px;flex-wrap:wrap;margin-top:3px}
+  .tag{font-size:10.5px;padding:1px 7px;border-radius:5px;background:#f3f4f6;color:#4b5563}
+  .tag.warn{background:var(--amber-soft);color:var(--amber)}
+  .hactions{margin-left:auto;display:flex;gap:8px}
+  .btn{border:1px solid var(--line);background:#fff;padding:6px 11px;border-radius:8px;font-size:12.5px}
+  .btn:hover{border-color:#c9cfd8}
+  .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+  .btn.primary:hover{filter:brightness(.96)}
+  .tabs{display:flex;gap:2px;margin-top:10px}
+  .tabs button{border:0;background:transparent;padding:9px 12px;font-size:13px;color:var(--sub);border-bottom:2px solid transparent;margin-bottom:-1px}
+  .tabs button.on{color:var(--text);font-weight:600;border-bottom-color:var(--accent)}
+  .tabs .badge{font-size:10.5px;background:#f1f2f5;color:#6b7280;padding:0 5px;border-radius:5px;margin-left:5px}
+
+  .rbody{flex:1;display:grid;grid-template-columns:1fr 372px;min-height:0}
+  .canvas{overflow:auto;padding:16px 20px 28px;min-width:0}
+
+  /* 屏1/2 通用卡片 */
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow)}
+  .pad{padding:14px 16px}
+  .card h3{margin:0 0 10px;font-size:12.5px;font-weight:650;color:#374151;display:flex;align-items:center;gap:8px}
+  .grid2{display:grid;grid-template-columns:1.1fr .9fr;gap:14px}
+  .row{display:grid;grid-template-columns:92px 1fr;gap:10px;padding:7px 0;border-bottom:1px dashed var(--line2);font-size:12.8px}
+  .row:last-child{border-bottom:0}
+  .row .k{color:var(--sub);font-size:12.3px}
+  .missing{color:var(--amber);background:var(--amber-soft);border:1px solid #fde68a;border-radius:5px;padding:0 6px;font-size:11.5px}
+  .raw{font-size:12.8px;line-height:1.85;color:#374151;max-height:360px;overflow:auto}
+  .raw mark{background:#fef3c7;padding:1px 2px;border-radius:3px}
+  .cols3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .colbox{border:1px solid var(--line);border-radius:10px;padding:10px}
+  .colbox .hd{font-size:12px;font-weight:650;margin-bottom:6px}
+  .colbox .it{font-size:12.2px;color:#374151;padding:4px 0;border-bottom:1px dashed var(--line2)}
+  .colbox .it:last-child{border-bottom:0}
+
+  /* 看板 */
+  .filters{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:3px 10px;font-size:11.8px;color:#4b5563}
+  .chip.on{background:var(--accent-soft);border-color:#c7d7fe;color:var(--accent)}
+  .board{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;align-items:start}
+  .col{border:1px solid var(--line);border-radius:12px;padding:8px;min-height:380px;background:#f2f4f7}
+  .col.a{background:var(--green-soft);border-color:#d7f0e4}
+  .col.b{background:var(--amber-soft);border-color:#fbe8c4}
+  .colhead{display:flex;align-items:center;gap:7px;padding:3px 4px 9px;font-size:12.5px;font-weight:650}
+  .coldot{width:7px;height:7px;border-radius:50%}
+  .a .coldot{background:var(--green)} .b .coldot{background:#f59e0b} .c .coldot{background:#9ca3af}
+  .cnt{color:var(--sub);font-weight:500}
+  .expert{background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 10px;margin-bottom:7px;cursor:pointer;transition:.12s}
+  .expert:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(16,24,40,.08);border-color:#d3d9e2}
+  .exhead{display:flex;align-items:center;gap:7px}
+  .exname{font-weight:620;font-size:12.8px}
+  .score{margin-left:auto;font-size:11.5px;font-weight:700;color:#1d4ed8;background:var(--accent-soft);padding:1px 6px;border-radius:5px}
+  .expert.excluded .score{color:#6b7280;background:#f3f4f6}
+  .exmeta{color:var(--sub);font-size:11.2px;margin-top:3px;display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+  .src{font-size:10.3px;padding:1px 5px;border-radius:4px;background:#eef2ff;color:#4338ca}
+  .src.fs{background:#ecfdf5;color:#047857} .src.man{background:#fef3c7;color:#92400e}
+  .why{margin-top:5px;font-size:11.4px;color:#4b5563;line-height:1.5}
+  .why.gap{color:var(--amber)}
+
+  /* ============ Agent 面板 ============ */
+  .agent{border-left:1px solid var(--line);background:#fff;display:flex;flex-direction:column;min-height:0}
+  .ahead{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line2)}
+  .ahead b{font-size:12.8px}
+  .ahead .status{font-size:11px;color:var(--green);display:flex;align-items:center;gap:5px;margin-left:auto}
+  .status i{width:6px;height:6px;border-radius:50%;background:var(--green);display:block}
+  .thread{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:12px}
+  .msg{max-width:100%;font-size:12.6px;line-height:1.65}
+  .who{font-size:11px;color:var(--faint);margin-bottom:3px}
+  .bubble{background:#f5f6f8;border-radius:10px;padding:8px 10px;white-space:pre-wrap}
+  .msg.you .bubble{background:var(--accent-soft)}
+  .run{border:1px solid var(--line);border-radius:10px;overflow:hidden;font-size:12px}
+  .run .rt{display:flex;align-items:center;gap:7px;padding:8px 10px;background:#fafbfc;border-bottom:1px solid var(--line2);color:#374151}
+  .run .rt code{font:11.5px ui-monospace,SFMono-Regular,Menlo,monospace;background:#eef1f5;padding:1px 5px;border-radius:4px}
+  .run .rb{padding:7px 10px;color:var(--sub);font-size:11.6px}
+  .run .rb b{color:var(--text)}
+  .ok{color:var(--green);font-weight:700}
+  .quick{display:flex;gap:6px;flex-wrap:wrap;padding:0 14px 10px}
+  .quick button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:4px 9px;font-size:11.5px;color:#4b5563}
+  .quick button:hover{border-color:#c7d7fe;color:var(--accent);background:var(--accent-soft)}
+  .composer{border-top:1px solid var(--line2);padding:10px 12px}
+  .composer .box{border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:flex;gap:8px;align-items:flex-end;background:#fff}
+  .composer textarea{border:0;outline:0;resize:none;flex:1;font:12.6px/1.6 inherit;height:38px;background:transparent}
+  .send{border:0;background:var(--accent);color:#fff;border-radius:7px;width:28px;height:28px;display:grid;place-items:center}
+
+  /* 抽屉 */
+  .dw{position:fixed;inset:0;background:rgba(17,24,39,.26);display:none;z-index:50}
+  .dw.on{display:block}
+  .drawer{position:absolute;right:0;top:0;bottom:0;width:430px;background:#fff;box-shadow:-10px 0 32px rgba(16,24,40,.16);padding:16px 18px;overflow:auto}
+  .drawer h2{font-size:16px;margin:0 0 2px}
+  .x{position:absolute;right:12px;top:10px;border:0;background:#f3f4f6;width:26px;height:26px;border-radius:7px;color:#6b7280}
+  .dim{margin:9px 0}
+  .dim .r{display:flex;justify-content:space-between;font-size:12.2px;color:#374151}
+  .bar{height:6px;background:#eef0f3;border-radius:99px;overflow:hidden;margin-top:4px}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,#93b4fd,#2563eb)}
+  .dwacts{display:flex;gap:7px;margin-top:16px}
+  .btn.g{background:var(--green-soft);border-color:#a7f3d0;color:#047857}
+  .btn.y{background:var(--amber-soft);border-color:#fde68a;color:var(--amber)}
+  .btn.r{background:var(--red-soft);border-color:#fecaca;color:var(--red)}
+  .hide{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- 左栏：功能 -->
+  <aside class="left">
+    <div class="brand"><span class="dot"></span>专家运营<small>原识 × DSH</small></div>
+
+    <div class="nav">
+      <button class="on"><span class="ico">▤</span>需求</button>
+      <button><span class="ico">◎</span>专家库</button>
+      <button><span class="ico">⚙</span>设置</button>
+    </div>
+
+    <div class="sec"><span>进行中的需求</span><a href="#">＋</a></div>
+    <div class="demands">
+      <button class="demand on"><b>字节 · 多语言语音标注</b><span><i class="sdot"></i>匹配中 · 40 人</span></button>
+      <button class="demand"><b>美团 · 客服对话质检</b><span><i class="sdot warn"></i>待匹配 · 25 人</span></button>
+      <button class="demand"><b>某车企 · 座舱语义标注</b><span><i class="sdot draft"></i>草稿 · 待解析</span></button>
+      <button class="demand"><b>蚂蚁 · 金融文档抽取</b><span><i class="sdot"></i>已完成 · 12 人</span></button>
+    </div>
+    <button class="newbtn">＋ 新建需求（上传 Word / PDF）</button>
+
+    <div class="me"><div class="avatar">尚</div><div>尚楚哲<br><span style="font-size:11px">专家运营</span></div></div>
+  </aside>
+
+  <!-- 右栏：看板 + Agent -->
+  <main class="right">
+    <header class="rhead">
+      <div class="htop">
+        <div>
+          <h1>字节 · 多语言语音标注</h1>
+          <div class="meta"><span>字节跳动</span><span>40 人 · 3 个月</span><span>120–180 元/小时</span><span class="tag warn">2 个字段待补</span></div>
+        </div>
+        <div class="hactions">
+          <button class="btn">导出名单</button>
+          <button class="btn">分享</button>
+          <button class="btn primary">重新匹配</button>
+        </div>
+      </div>
+      <div class="tabs">
+        <button data-view="p1">需求解析</button>
+        <button data-view="p2">画像 / JD</button>
+        <button class="on" data-view="p3">匹配看板<span class="badge">43</span></button>
+      </div>
+    </header>
+
+    <div class="rbody">
+      <div class="canvas">
+
+        <!-- 解析 -->
+        <section id="p1" class="hide">
+          <div class="grid2">
+            <div class="card"><div class="pad">
+              <h3>需求卡 <span class="tag" style="background:#ecfdf5;color:#047857">AI 解析 · 0.86</span></h3>
+              <div class="row"><div class="k">专业方向</div><div>语音数据标注 / 多语言转写</div></div>
+              <div class="row"><div class="k">技能标签</div><div>方言转写、音频切分、标注规范、质检抽检</div></div>
+              <div class="row"><div class="k">经验年限</div><div>≥ 2 年标注经验</div></div>
+              <div class="row"><div class="k">地域</div><div>上海 / 成都优先，可远程</div></div>
+              <div class="row"><div class="k">语言</div><div>普通话 + 粤语或四川话</div></div>
+              <div class="row"><div class="k">预算 / 报价</div><div>120–180 元 / 小时</div></div>
+              <div class="row"><div class="k">周期 · 人数</div><div>3 个月 · 40 人</div></div>
+              <div class="row"><div class="k">合规限制</div><div>需签 NDA；无竞业限制</div></div>
+              <div class="row"><div class="k">面试方式</div><div><span class="missing">缺失 · 建议补</span></div></div>
+              <div class="row"><div class="k">结算周期</div><div><span class="missing">缺失 · 建议补</span></div></div>
+            </div></div>
+            <div class="card"><div class="pad">
+              <h3>原文与引用 <span class="tag">已定位 6 处</span></h3>
+              <div class="raw">
+                <p>项目背景：为 <mark>字节跳动</mark> 多语言语音模型提供训练数据，覆盖普通话、粤语、四川话三类语料，需完成转写、切分与质检。</p>
+                <p>人员要求：<mark>2 年以上语音标注经验</mark>，熟悉标注规范与质检流程；<mark>上海、成都</mark>两地优先，支持远程协作。</p>
+                <p>交付节奏：项目周期 <mark>3 个月</mark>，首批 <mark>40 人</mark>，后续视产能追加。</p>
+                <p>报价：<mark>120–180 元/小时</mark>，按实际有效工时结算，需签署 NDA，无竞业限制。</p>
+              </div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- 画像 -->
+        <section id="p2" class="hide">
+          <div class="grid2">
+            <div class="card"><div class="pad">
+              <h3>专家画像 <span class="tag">内部版</span></h3>
+              <div class="cols3">
+                <div class="colbox"><div class="hd" style="color:var(--green)">硬性条件</div>
+                  <div class="it">2 年以上语音标注经验</div><div class="it">普通话 + 粤语/四川话</div>
+                  <div class="it">可投入 ≥ 3 个月</div><div class="it">接受 120–180 元/小时</div></div>
+                <div class="colbox"><div class="hd">加分项</div>
+                  <div class="it">有字节项目经验</div><div class="it">会质检 / 抽检</div><div class="it">上海 / 成都本地</div></div>
+                <div class="colbox"><div class="hd" style="color:var(--amber)">排除项</div>
+                  <div class="it">报价下限 &gt; 180</div><div class="it">不接受 NDA</div><div class="it">档期冲突</div></div>
+              </div>
+            </div></div>
+            <div class="card"><div class="pad">
+              <h3>岗位 JD（对外版）</h3>
+              <div class="raw" style="max-height:280px">
+                <p><b>多语言语音标注专家（粤语 / 四川话）</b></p>
+                <p>职责：按规范完成语音转写、音频切分与质检抽检，准确率 ≥ 98%。</p>
+                <p>要求：2 年以上标注经验；普通话流利，掌握粤语或四川话。</p>
+                <p>地点：上海 / 成都优先，支持远程。周期：3 个月，每周 ≥ 20 小时。</p>
+                <p>报酬：120–180 元/小时，按有效工时结算。</p>
+              </div>
+            </div></div>
+          </div>
+        </section>
+
+        <!-- 看板 -->
+        <section id="p3">
+          <div class="filters">
+            <span class="chip on">原识</span><span class="chip on">飞书表单</span><span class="chip on">手填</span>
+            <span class="chip">城市 · 不限</span><span class="chip">报价 · 不限</span><span class="chip">只看有缺口</span>
+            <span style="margin-left:auto;color:var(--faint);font-size:11.5px">43 位候选 · 2 分钟前</span>
+          </div>
+          <div class="board">
+            <div class="col a"><div class="colhead"><span class="coldot"></span>推荐 <span class="cnt">12</span></div><div id="colA"></div></div>
+            <div class="col b"><div class="colhead"><span class="coldot"></span>待确认 <span class="cnt">8</span></div><div id="colB"></div></div>
+            <div class="col c"><div class="colhead"><span class="coldot"></span>排除 <span class="cnt">23</span></div><div id="colC"></div></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- Agent 面板 -->
+      <aside class="agent">
+        <div class="ahead"><b>运营 Agent</b><span class="status"><i></i>在线</span></div>
+        <div class="thread">
+          <div class="msg you"><div class="who">你</div><div class="bubble">把原识和飞书里的候选人按这份画像重排，粤语/四川话优先，报价别超 180。</div></div>
+
+          <div class="msg">
+            <div class="who">Agent</div>
+            <div class="run">
+              <div class="rt"><span class="ok">✓</span><code>expert_match</code><span style="margin-left:auto;color:var(--faint);font-size:11px">3.2s</span></div>
+              <div class="rb">扫描 <b>43</b> 位候选（原识 27 / 飞书 9 / 手填 7）→ <b>12 推荐</b> · <b>8 待确认</b> · <b>23 排除</b></div>
+            </div>
+          </div>
+
+          <div class="msg"><div class="who">Agent</div><div class="bubble">已重排。3 位因报价超上限被移到「排除」，2 位原「待确认」补上档期信息后升到「推荐」。
+建议先看 张*（92）和 陈*（88），两人技能全命中且有字节项目经验。</div></div>
+
+          <div class="msg"><div class="who">Agent</div><div class="bubble">需要我把这 12 人导出成飞书表格，或者给「待确认」的 8 人各生成一条追问话术吗？</div></div>
+        </div>
+        <div class="quick">
+          <button>重排匹配</button><button>生成追问话术</button><button>导出推荐名单</button><button>补全缺失字段</button>
+        </div>
+        <div class="composer">
+          <div class="box"><textarea placeholder="让 Agent 做点什么，例如：把待确认里报价超标的挑出来"></textarea><button class="send">↑</button></div>
+        </div>
+      </aside>
+    </div>
+  </main>
+</div>
+
+<!-- 抽屉 -->
+<div class="dw" id="dw">
+  <div class="drawer">
+    <button class="x" onclick="closeDw()">✕</button>
+    <h2 id="dn">张*</h2>
+    <div class="meta" style="margin-bottom:8px"><span id="ds">原识平台</span><span id="dm">上海 · 3 年 · 150 元/小时</span></div>
+    <div style="display:flex;align-items:center;gap:8px"><span class="tag" id="dst" style="background:#ecfdf5;color:#047857">推荐</span><span style="font-size:12px;color:var(--faint)">AI 综合分</span><b id="dsc" style="font-size:17px;color:#1d4ed8">92</b></div>
+    <h3 style="margin:16px 0 6px;font-size:12.5px;color:#374151">维度评分</h3>
+    <div id="dims"></div>
+    <h3 style="margin:14px 0 4px;font-size:12.5px;color:#374151">匹配理由</h3>
+    <div class="why" id="dwhy" style="font-size:12.2px"></div>
+    <h3 style="margin:14px 0 4px;font-size:12.5px;color:#374151">缺口与追问</h3>
+    <div class="why gap" id="dgap" style="font-size:12.2px"></div>
+    <div class="dwacts"><button class="btn g" onclick="setState('推荐')">推荐</button><button class="btn y" onclick="setState('待确认')">待确认</button><button class="btn r" onclick="setState('排除')">排除</button></div>
+    <div style="font-size:11.5px;color:var(--faint);margin-top:8px">人工覆写需选原因模板，写入审计日志。</div>
+  </div>
+</div>
+
+<script>
+const DATA = {
+  A:[
+    {n:'张*',s:'原识',sc:92,m:'上海 · 3 年 · 150 元/小时',why:'技能命中 4/4；有字节语音项目；档期匹配',gap:''},
+    {n:'陈*',s:'飞书',sc:88,m:'成都 · 4 年 · 140 元/小时',why:'粤语母语；质检经验 2 年；报价在区间内',gap:''},
+    {n:'李*',s:'原识',sc:85,m:'远程 · 3 年 · 160 元/小时',why:'四川话转写熟练；可投入 3 个月',gap:''},
+    {n:'周*',s:'手填',sc:82,m:'上海 · 2 年 · 130 元/小时',why:'技能命中 3/4；报价有优势',gap:''}
+  ],
+  B:[
+    {n:'王*',s:'原识',sc:74,m:'成都 · 2 年 · 190 元/小时',why:'技能匹配好，但报价高于上限',gap:'报价超 10 元/小时，建议追问可否下调'},
+    {n:'赵*',s:'飞书',sc:71,m:'北京 · 5 年 · 150 元/小时',why:'经验丰富，需确认是否接受远程',gap:'地域不符，追问远程意愿'},
+    {n:'吴*',s:'手填',sc:68,m:'上海 · 1 年 · 120 元/小时',why:'报价合适，经验略低于 2 年',gap:'经验差 1 年，建议试标验证'}
+  ],
+  C:[
+    {n:'孙*',s:'原识',sc:38,m:'广州 · 3 年 · 200 元/小时',why:'排除：报价下限 200 > 预算 180',gap:'硬门槛未通过'},
+    {n:'郑*',s:'飞书',sc:35,m:'西安 · 2 年 · 140 元/小时',why:'排除：方言不符（仅普通话）',gap:'硬门槛未通过'}
+  ]
+};
+const SRC={原识:'',飞书:'fs',手填:'man'};
+const card=e=>`<div class="expert" onclick="openDw('${e.n}')">
+  <div class="exhead"><span class="exname">${e.n}</span><span class="score">${e.sc}</span></div>
+  <div class="exmeta"><span class="src ${SRC[e.s]||''}">${e.s}</span><span>${e.m}</span></div>
+  <div class="why">${e.why}</div>${e.gap?`<div class="why gap">${e.gap}</div>`:''}</div>`;
+colA.innerHTML=DATA.A.map(card).join('');
+colB.innerHTML=DATA.B.map(card).join('');
+colC.innerHTML=DATA.C.map(e=>card(e)).join('');
+const ALL=[...DATA.A,...DATA.B,...DATA.C];
+
+let cur=null;
+function openDw(n){
+  const e=ALL.find(x=>x.n===n); if(!e)return; cur=e;
+  dn.textContent=e.n; ds.textContent=e.s==='原识'?'原识平台':(e.s==='飞书'?'飞书表单':'业务手填');
+  dm.textContent=e.m; dsc.textContent=e.sc;
+  const st=e.sc>=80?['推荐','#ecfdf5','#047857']:(e.sc>=60?['待确认','#fffbeb','#b45309']:['排除','#f3f4f6','#6b7280']);
+  dst.textContent=st[0]; dst.style.background=st[1]; dst.style.color=st[2];
+  dwhy.textContent=e.why; dgap.textContent=e.gap||'无';
+  const dims=[['专业匹配',35,.92],['经验年限',25,.8],['产能 / 档期',15,.85],['报价',15,.7],['信誉 / 历史',10,.9]];
+  document.getElementById('dims').innerHTML=dims.map(([k,w,r])=>`<div class="dim"><div class="r"><span>${k} <span style="color:#9ca3af">(${w})</span></span><span>${Math.round(w*r)}/${w}</span></div><div class="bar"><i style="width:${Math.round(r*100)}%"></i></div></div>`).join('');
+  dw.classList.add('on');
+}
+function closeDw(){dw.classList.remove('on')}
+function setState(s){ if(!cur)return; alert(`已把「${cur.n}」标记为「${s}」\n原因模板与备注写入审计日志（原型示意）`); closeDw(); }
+dw.onclick=e=>{if(e.target.id==='dw')closeDw()};
+
+// tabs
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('.tabs button').forEach(x=>x.classList.remove('on')); b.classList.add('on');
+  ['p1','p2','p3'].forEach(id=>document.getElementById(id).classList.add('hide'));
+  document.getElementById(b.dataset.view).classList.remove('hide');
+});
+document.querySelectorAll('.chip').forEach(c=>c.onclick=()=>c.classList.toggle('on'));
+document.querySelectorAll('.nav button').forEach(b=>b.onclick=()=>{document.querySelectorAll('.nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+document.querySelectorAll('.demand').forEach(b=>b.onclick=()=>{document.querySelectorAll('.demand').forEach(x=>x.classList.remove('on'));b.classList.add('on')});
+
+// 原型演示：?view=p1|p2|p3 & ?drawer=张*
+const q=new URLSearchParams(location.search);
+const v=q.get('view'); if(v&&['p1','p2','p3'].includes(v)) document.querySelector(`[data-view="${v}"]`)?.click();
+const d=q.get('drawer'); if(d) openDw(d);
+</script>
+</body>
+</html>
