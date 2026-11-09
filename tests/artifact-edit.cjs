@@ -1,0 +1,13 @@
+const fs=require('node:fs'), vm=require('node:vm'), assert=require('node:assert/strict');
+const source=fs.readFileSync(process.argv[2] || 'plugin/lib/client.js','utf8');
+const data=new Map();const context={localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},PROFILE_FIELDS:['专业背景','从业经验','能力要求','其他条件'],JD_FIELDS:['职位名称','岗位说明','所属领域','岗位职责','任职要求','核心能力','价格','招募人数'],RECRUITMENT_RESULTS:{d1:{profile:{专业背景:'原画像'},jd:{职位名称:'原岗位',招募人数:40}},d2:{profile:{专业背景:'另一个项目'},jd:{招募人数:2}}},store:{artifactDrafts:{'d1:profile':{专业背景:'改画像'},'d1:jd':{职位名称:'未保存岗位'}},artifactRevision:0}};
+context.set=patch=>Object.assign(context.store,patch);vm.createContext(context);
+vm.runInContext(source.slice(source.indexOf('  const artifactKey'),source.indexOf('  function RecruitmentFields'))+'\nthis.api={normalizeArtifact,artifactCopyText,recruitmentResult,saveArtifact}',context);
+const a=context.api;
+a.saveArtifact('d1','profile',context.PROFILE_FIELDS,context.store.artifactDrafts['d1:profile']);
+assert.equal(a.recruitmentResult('d1').profile.专业背景,'改画像');assert.equal(a.recruitmentResult('d1').jd.职位名称,'原岗位');assert.equal(a.recruitmentResult('d2').profile.专业背景,'另一个项目');assert.ok(context.store.artifactDrafts['d1:jd']);assert.equal(context.store.artifactDrafts['d1:profile'],undefined);
+assert.equal(a.artifactCopyText('画像',context.PROFILE_FIELDS,{专业背景:'财务',从业经验:null,能力要求:'  '}),'画像\n\n专业背景：财务');
+assert.equal(a.normalizeArtifact(['招募人数'],{招募人数:''}).招募人数,null);assert.equal(a.normalizeArtifact(['招募人数'],{招募人数:'0'}).招募人数,0);
+for(const value of ['-1','2.5','NaN','9007199254740992'])assert.throws(()=>a.normalizeArtifact(['招募人数'],{招募人数:value}));
+context.localStorage.setItem=()=>{throw Error('disk full')};assert.throws(()=>a.saveArtifact('d1','jd',context.JD_FIELDS,context.store.artifactDrafts['d1:jd']));assert.ok(context.store.artifactDrafts['d1:jd']);assert.equal(a.recruitmentResult('d1').jd.职位名称,'原岗位');
+console.log('PASS: project/card isolation, nullable fields, copy skips blanks, count validation, draft retention on failed save');

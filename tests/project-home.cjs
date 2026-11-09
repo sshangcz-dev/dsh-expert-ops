@@ -1,0 +1,23 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const src=fs.readFileSync(process.argv[2]||'plugin/lib/client.js','utf8');
+const store={projects:[{id:'d1'},{id:'d2'}],nav:'project',demand:'d1',tab:'home'};
+const context={store,set:patch=>Object.assign(store,patch)};
+vm.createContext(context);vm.runInContext(src.slice(src.indexOf('  function openProjectSpace('),src.indexOf('  function ProjectHomeCards('))+'\nthis.api={projectTaskDestination,subscribeProjectNavigation}',context);
+const {projectTaskDestination:route,subscribeProjectNavigation:subscribe}=context.api;
+for(const [input,want] of [['帮我生成专家画像和岗位JD','recruitment'],['请解析甲方需求','recruitment'],['按画像匹配专家','p3'],['请打开匹配看板。仅演示导航，不要执行工具或修改文件，回复收到即可。','p3'],['你好',null],['我下一步做什么',null],['如何匹配专家',null],['不要生成JD',null],['生成JD，然后匹配专家',null]]) assert.equal(route(input),want,input);
+let snapshot={entries:[],change:null},listeners=new Set();
+const source={getSnapshot:()=>snapshot,subscribe:fn=>{listeners.add(fn);return()=>listeners.delete(fn)}};
+const entry=(seq,text,type='user/message',kind='user')=>({event:{seq,type,data:{source:{kind},content:[{type:'text',text}]}}});
+const emit=(kind,entries)=>{snapshot={entries,change:{kind,entries}};for(const fn of listeners)fn()};
+snapshot.entries=[entry(1,'匹配专家')];const stop=subscribe(source,'d1');assert.equal(store.tab,'home');
+emit('replace',[entry(2,'匹配专家')]);emit('prepend',[entry(0,'匹配专家')]);assert.equal(store.tab,'home');
+emit('append',[entry(3,'匹配专家','assistant/message')]);emit('append',[entry(4,'匹配专家','user/message','tool')]);assert.equal(store.tab,'home');
+emit('append',[entry(5,'匹配专家')]);assert.equal(store.tab,'p3');store.tab='home';emit('append',[entry(5,'匹配专家')]);assert.equal(store.tab,'home');
+store.demand='d2';emit('append',[entry(6,'生成JD')]);assert.equal(store.tab,'home');store.demand='d1';store.tab='p3';emit('append',[entry(7,'生成JD')]);assert.equal(store.tab,'p3');
+store.tab='home';emit('append',[entry(8,'生成JD')]);assert.equal(store.tab,'recruitment');stop();assert.equal(listeners.size,0);store.tab='home';emit('append',[entry(9,'生成JD')]);assert.equal(store.tab,'home');
+console.log('PASS: explicit intent, ambiguity/negation, history replay, assistant isolation, duplicate sequence, project isolation, feature protection, unsubscribe');
+
+vm.runInContext(src.slice(src.indexOf('  function isProjectChatEmpty('),src.indexOf('  function AgentPanel('))+'\nthis.empty=isProjectChatEmpty',context);
+assert.equal(context.empty({blank:true}),true);
+for(const state of [{blank:false},{blank:true,promptAttempted:true},{blank:true,running:true},{blank:true,awaitingFirstTurn:true},{blank:true,pendingSubmissions:[{}]}]) assert.equal(context.empty(state),false);
+console.log('PASS: welcome only for empty conversation, hidden during optimistic submission and running task');

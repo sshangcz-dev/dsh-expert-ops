@@ -10,14 +10,15 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
    *   右侧 = 招募成果 / 匹配看板 + 常驻 Agent 面板
    *
    * 入口走官方 slot：sidebar.panellist 注册入口，keyed main 渲染工作台。
-   * 数据全部在内存里（mock），M3 再接 host 侧 ctx.llm / SQLite / 原识 / 飞书。
+   * 业务数据仍为 mock；项目聊天复用原生 DSH Session，项目与会话绑定暂存 localStorage。
    */
 
   const React = require("react")
   const { useState, useEffect, useRef } = React
   const n = React.createElement
+  const ProjectHomeContext = React.createContext(null)
 
-  const inject = ["slots", "theme", "layout"]
+  const inject = ["slots", "theme", "layout", "sessions"]
 
   const CSS = `
 .eo-glyph{display:block}
@@ -53,6 +54,28 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-sdot.draft{background:#9ca3af}.eo-sdot.warn{background:#f59e0b}
 .eo-me{display:flex;align-items:center;gap:9px;padding:11px 15px;border-top:1px solid #e6e8ec;color:#6b7280;font-size:11.5px}
 .eo-avatar{width:26px;height:26px;border-radius:50%;background:#dbeafe;color:#1d4ed8;display:grid;place-items:center;font-weight:700;font-size:11px}
+.eo-project-item{position:relative}
+.eo-project-item .eo-demand b{padding-right:31px}
+.eo-project-item .eo-demand-chevron{right:27px}
+.eo-project-more{position:absolute;right:5px;top:7px;border:0;border-radius:4px;background:transparent;color:#6b7280;cursor:pointer;font-size:16px;line-height:22px;width:22px;opacity:0}
+.eo-project-item:hover>.eo-project-more,.eo-project-item:focus-within>.eo-project-more{opacity:1}
+.eo-project-more:hover{background:#e5e7eb}
+.eo-ended-toggle{display:flex;align-items:center;width:100%;border:0;border-top:1px solid #e6e8ec;background:transparent;padding:12px 7px 8px;margin-top:12px;text-align:left;font-size:11.5px;color:#6b7280;cursor:pointer}
+.eo-list-empty{font-size:11.5px;color:#9ca3af;padding:0 8px}
+.eo-undo-delete{width:100%;text-align:left;border:0;background:transparent;font-size:11px;color:#2563eb;padding:10px 7px;cursor:pointer;overflow-wrap:anywhere}
+.eo-context-menu{position:fixed;z-index:2000;width:172px;padding:5px;background:#fff;border:1px solid #e6e8ec;border-radius:9px;box-shadow:0 8px 28px #15243b29}
+.eo-context-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:5px;padding:7px 10px;font-size:12px;cursor:pointer;color:#374151}
+.eo-context-menu button:hover,.eo-context-menu button:focus-visible{background:#eef4ff;outline:none}
+.eo-context-menu .danger{color:#dc2626;border-top:1px solid #eef0f3}
+.eo-project-dialog-backdrop{position:fixed;inset:0;z-index:2100;background:#15243b33;display:grid;place-items:center}
+.eo-project-dialog{width:min(360px,calc(100vw - 40px));background:white;border-radius:12px;padding:20px;box-shadow:0 16px 50px #15243b33}
+.eo-project-dialog h3{margin:0 0 16px;font-size:15px}
+.eo-project-dialog p{font-size:12px;color:#6b7280;line-height:1.7;overflow-wrap:anywhere}
+.eo-project-dialog label{display:grid;gap:6px;font-size:12px}
+.eo-project-dialog input{box-sizing:border-box;width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:8px 10px;font:inherit}
+.eo-project-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+.eo-project-dialog .danger{color:#fff;background:#dc2626;border-color:#dc2626}
+@media(hover:none){.eo-project-more{opacity:1}}
 /* 右栏 */
 .eo-right{display:flex;flex-direction:column;min-width:0;min-height:0;background:#f7f8fa}
 .eo-head{background:#fff;border-bottom:1px solid #e6e8ec;padding:6px 14px}
@@ -70,8 +93,42 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-btn:hover{border-color:#c9cfd8}
 .eo-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff}
 .eo-badge{font-size:10.5px;background:#f1f2f5;color:#6b7280;padding:0 5px;border-radius:5px;margin-left:5px}
-.eo-body{flex:1;display:grid;grid-template-columns:1fr 320px;min-height:0}
+.eo-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,36%);min-height:0}
 .eo-canvas{overflow:auto;padding:14px 14px 22px;min-width:0}
+
+/* AI totals and compact human review queue */
+.eo-candidate-workspace{container-type:inline-size}
+.eo-stat-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,3fr) minmax(0,3fr);gap:10px;margin-bottom:12px}
+.eo-stat{position:relative;border:1px solid #d1fae5;border-radius:11px;background:#ecfdf5;color:#047857;text-align:left;padding:10px 14px;cursor:pointer;font:inherit}
+.eo-stat.B{background:#fffbeb;border-color:#fde68a;color:#b45309}.eo-stat.C{background:#f3f4f6;border-color:#e5e7eb;color:#6b7280}
+.eo-stat[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:1px}
+.eo-stat-label{display:block;padding-right:32px;font-size:12px;font-weight:600}.eo-stat-number{display:block;font-size:32px;font-weight:650;line-height:1.2;margin-top:4px;font-variant-numeric:tabular-nums}
+.eo-stat-caption{display:block;margin-top:3px;font-size:10.5px;opacity:.85}
+.eo-pool-pending{display:flex;align-items:center;gap:5px;font-size:11px;color:#64748b}
+.eo-pool-pending input{min-height:0}
+.eo-stat-number small{font-size:11px;font-weight:400;margin-left:6px}
+.eo-stat-new{position:absolute;right:12px;top:12px;border-radius:12px;padding:2px 7px;background:#fff;color:inherit;border:1px solid currentColor;font-size:11px;font-weight:600}
+.eo-pool-tabs{display:flex;gap:20px;border-bottom:1px solid #e0e5ec;margin-bottom:8px;overflow:auto}
+.eo-pool-tabs button{white-space:nowrap;font:inherit;font-size:12px;padding:0 0 8px;border:0;border-bottom:2px solid transparent;color:#6b7280;background:none;cursor:pointer}
+.eo-pool-tabs button[aria-pressed="true"]{color:#1d4ed8;border-bottom-color:#2563eb;font-weight:600}.eo-pool-tabs small{margin-left:5px;font:inherit}
+.eo-pool-filters{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}.eo-pool-filters select,.eo-pool-filters input{min-height:33px;box-sizing:border-box;border:1px solid #d5dce6;border-radius:7px;background:#fff;padding:6px 9px;font:inherit;font-size:12px;color:#374151;min-width:0}
+.eo-pool-filters input{flex:1;min-width:150px}.eo-pool-filters select{max-width:100%}
+.eo-pool-bulk{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:11.5px;color:#64748b;flex-wrap:wrap}.eo-pool-checks{display:flex;align-items:center;gap:14px;flex-wrap:nowrap}.eo-pool-bulk label{display:flex;align-items:center;gap:5px;white-space:nowrap}.eo-pool-bulk input{margin:0;accent-color:#2563eb}.eo-pool-selected{white-space:nowrap}.eo-pool-bulk-actions{display:flex;gap:6px;margin-left:auto}.eo-pool-bulk-actions .eo-btn{padding:4px 9px;font-size:11.5px}
+.eo-candidate-workspace .eo-btn:disabled{opacity:.45;cursor:not-allowed}
+.eo-pool-list{background:white;border:1px solid #e0e5ec;border-radius:10px;overflow:hidden}
+.eo-pool-row{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:11px;padding:14px;border-bottom:1px solid #e7ecf2;align-items:start}.eo-pool-row:last-child{border-bottom:0}.eo-pool-row>input{margin:3px 0 0;accent-color:#2563eb}
+.eo-pool-row.reviewed{background:#f5f6f8}.eo-pool-row.reviewed .eo-pool-info,.eo-pool-row.reviewed .eo-pool-status{color:#7b8492}.eo-pool-row.reviewed .eo-ai-badge{background:#e8ebef;color:#6b7280;border-color:#dce1e7}
+.eo-pool-new{display:inline-flex;align-items:center;padding:2px 6px;border-radius:5px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;font-size:10px;font-weight:600}
+.eo-pool-source{display:inline-flex;padding:2px 6px;border-radius:5px;font-size:10px;background:#eff6ff;color:#1d4ed8}
+.eo-pool-source.feishu{background:#f5f3ff;color:#6d28d9}.eo-pool-source.manual{background:#ecfeff;color:#0e7490}
+.eo-pool-row.reviewed .eo-pool-source{background:#e8ebef;color:#6b7280}
+.eo-pool-name{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.eo-pool-name strong{font-size:13px}.eo-pool-name small{font-size:10px;color:#8a94a5}
+.eo-ai-badge{border:1px solid #bbebd7;background:#ecfdf5;color:#047857;padding:2px 6px;border-radius:5px;font-size:10px}.eo-ai-badge.B{background:#fff7ed;border-color:#fed7aa;color:#b45309}.eo-ai-badge.C{background:#f3f4f6;border-color:#d1d5db;color:#6b7280}
+.eo-pool-info{min-width:0;color:#334155}.eo-pool-info p{font-size:11.5px;line-height:1.7;margin:5px 0 0;overflow-wrap:anywhere}.eo-pool-info .eo-pool-reason{color:#778296;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.eo-pool-side{display:flex;flex-direction:column;gap:7px;align-items:flex-end}.eo-pool-status{font-size:11px;color:#64748b}.eo-pool-row-actions{display:flex;gap:6px;flex-wrap:wrap}.eo-pool-row-actions .eo-btn{font-size:11px;padding:4px 8px}.eo-pool-detail{font:inherit;font-size:11px;background:none;border:0;color:#2563eb;cursor:pointer;padding:0}
+.eo-pool-empty{padding:28px;text-align:center;font-size:12px;color:#64748b}.eo-pool-note{font-size:10.5px;color:#8a94a5;margin-top:10px}
+@container(max-width:620px){.eo-pool-row{grid-template-columns:16px minmax(0,1fr)}.eo-pool-side{grid-column:2;flex-direction:row;align-items:center;flex-wrap:wrap}.eo-pool-row-actions{margin-left:auto}.eo-stat{padding:12px}.eo-stat-number{font-size:28px}.eo-pool-tabs{gap:14px}}
+
 /* 卡片 */
 .eo-card{background:#fff;border:1px solid #e6e8ec;border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 10px 26px rgba(16,24,40,.05)}
 .eo-pad{padding:13px 15px}
@@ -81,11 +138,53 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-row:last-child{border-bottom:0}
 .eo-row .k{color:#6b7280;font-size:12.1px}
 .eo-recruitment{container-type:inline-size}
-.eo-recruitment .eo-grid2{grid-template-columns:minmax(0,1.05fr) minmax(0,.95fr);align-items:stretch}
-.eo-recruitment .eo-grid2 > .eo-card{min-width:0}
+.eo-artifact-switcher{min-width:0}
+.eo-artifact-tabs{display:flex;gap:20px;padding:0 16px;border-bottom:1px solid #e5e7eb}
+.eo-artifact-tab{appearance:none;border:0;border-bottom:2px solid transparent;background:none;padding:13px 0 11px;color:#6b7280;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.eo-artifact-tab[aria-selected="true"]{color:#2563eb;border-bottom-color:#2563eb}
+.eo-artifact-tab:focus-visible{outline:2px solid #2563eb;outline-offset:2px;border-radius:3px}
+.eo-artifact-panel[hidden]{display:none}
+.eo-artifact-panel > .eo-artifact-card{border:0;border-radius:0;background:transparent;box-shadow:none;min-width:0}
+.eo-artifact-panel .eo-artifact-head > .eo-tag{margin:0}
 .eo-recruitment .eo-fields{margin:0}
+.eo-artifact-card{display:flex;flex-direction:column}
+.eo-profile-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:650}
+.eo-profile-section-title span{font-size:10px;color:#6b7280;font-weight:400}
+.eo-profile-section-title.semantic{border-top:1px solid #e6e8ec;padding-top:14px;margin-top:14px}
+.eo-profile-help{font-size:10.5px;color:#788293;margin:4px 0 10px}
+.eo-criteria-group{margin-bottom:10px}
+.eo-criteria-group h4{font-size:10.5px;font-weight:500;color:#8993a2;margin:0 0 4px}
+.eo-criteria-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
+.eo-criterion{min-width:0;border-bottom:1px dashed #e8ecf2;padding:7px 0}
+.eo-criterion-label{font-size:11px;color:#647084;display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:3px}
+.eo-criterion .eo-field-value{font-size:12px;line-height:1.6}
+.eo-criterion-rule{border-radius:4px;padding:0 4px;font-size:9px;line-height:16px}
+.eo-criterion-rule.required{color:#275ca4;background:#eaf2ff}.eo-criterion-rule.preferred{color:#697a50;background:#eff4e9}
+.eo-criterion .eo-empty-field{color:#a2a9b4}
+.eo-criterion-options{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
+.eo-criterion-options select{box-sizing:border-box;max-width:100%;font:inherit;font-size:10px;color:#536174;border:1px solid #d8e0eb;border-radius:4px;background:white;padding:3px}
+.eo-criterion-hint{font-size:9px;color:#8993a2}
+.eo-profile-policy{font-size:10px;color:#697889;background:#f7f9fc;padding:7px 9px;border-radius:5px;line-height:1.7;margin:0}
+.eo-criterion.semantic{padding:9px 0}
+.eo-profile-legacy{font-size:11px;color:#788293;margin-top:12px}
+.eo-profile-legacy summary{cursor:pointer}.eo-profile-legacy p{white-space:pre-wrap}
+.eo-profile-criteria .eo-artifact-actions{position:sticky;bottom:0;background:white;padding-bottom:6px;box-shadow:0 -8px 10px white}
+.eo-profile-criteria .eo-field-editor{font-size:12px}
+.eo-artifact-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.eo-artifact-head h3{margin:0}
+.eo-artifact-head .eo-btn{font-size:11px;padding:4px 8px;flex-shrink:0}
+.eo-editable-row{cursor:text}
+.eo-field-value{display:block;text-align:left;width:100%;font:inherit;color:inherit;line-height:inherit;border:0;background:transparent;padding:2px 4px;margin:-2px -4px;border-radius:4px;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
+.eo-editable-row:hover .eo-field-value{background:#f2f6ff}
+.eo-field-value:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.eo-field-editor{box-sizing:border-box;width:100%;min-width:0;display:block;font:inherit;color:inherit;line-height:1.65;border:1px solid #93b4f5;border-radius:6px;background:#fff;padding:6px 8px;resize:vertical;max-height:350px;outline-color:#2563eb}
+.eo-artifact-actions{margin-top:auto;padding-top:14px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
+.eo-artifact-actions span{margin-right:auto;font-size:11px;color:#8a6b31}
+.eo-artifact-actions .eo-btn:disabled,.eo-artifact-head .eo-btn:disabled{opacity:.45;cursor:not-allowed}
 .eo-upload{margin-bottom:10px;padding:8px 12px;box-shadow:0 1px 2px rgba(16,24,40,.03)}
 .eo-upload-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.eo-upload-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.eo-upload-actions .eo-btn:disabled{background:#edf0f5;border-color:#e1e5eb;color:#a1a8b4;cursor:not-allowed;box-shadow:none}
 .eo-upload-head h3{margin:0;white-space:nowrap}
 .eo-upload-info{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .eo-upload .eo-btn{padding:4px 9px;font-size:11.5px}
@@ -106,7 +205,58 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-recruitment .eo-raw{font-size:12.5px;line-height:1.82;color:#374151;max-height:330px;overflow:auto}
 .eo-recruitment .eo-raw mark{background:#fef3c7;padding:1px 2px;border-radius:3px}
 .eo-recruitment .eo-raw p:last-child{margin-bottom:0}
-@container (max-width:540px){.eo-recruitment .eo-grid2{grid-template-columns:minmax(0,1fr)}}
+
+.eo-kb-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px}
+.eo-kb-toolbar h3{margin:0;overflow-wrap:anywhere}
+.eo-kb-toolbar input{width:190px;max-width:100%;border:1px solid #e6e8ec;border-radius:7px;padding:6px 9px;font:inherit}
+.eo-kb-docs{margin-top:10px}
+.eo-kb-doc{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:1px solid transparent;border-top-color:#eef0f3;background:transparent;border-radius:7px;padding:11px 8px;cursor:pointer;font:inherit;color:inherit}
+.eo-kb-doc:hover,.eo-kb-doc.on{background:#f3f7ff;border-color:#cdddf9}
+.eo-kb-file-icon{font-size:9px;color:#2563eb;background:#eff5ff;border:1px solid #dbe7fb;border-radius:5px;padding:8px 4px;min-width:26px;text-align:center}
+.eo-kb-file-name{flex:1;min-width:0;overflow-wrap:anywhere}
+.eo-kb-file-name b{font-size:12px;font-weight:550;display:block}
+.eo-kb-file-name small{display:block;color:#9ca3af;font-size:11px;margin-top:3px}
+.eo-kb-doc>.eo-tag{white-space:nowrap}
+.eo-kb-preview{margin-top:12px}
+.eo-kb-quotes{font-size:12.5px;line-height:1.8;color:#374151}
+.eo-kb-quotes small{display:block;color:#9ca3af;font-size:11px}
+.eo-kb-scope{padding:9px 13px;border-bottom:1px solid #eef0f3}
+.eo-kb-scope label{display:grid;gap:5px;font-size:11px;color:#6b7280}
+.eo-kb-scope select{width:100%;min-width:0;border:1px solid #e6e8ec;border-radius:6px;padding:6px;background:#f9fafb;font-size:11.5px;color:#374151}
+.eo-kb-welcome h3{font-size:14px;margin:7px 0}
+.eo-kb-welcome p{font-size:12px;color:#6b7280;line-height:1.8}
+.eo-kb-welcome small{font-size:11px;color:#9ca3af}
+.eo-kb-citation{margin-top:10px;border-left:2px solid #c7d7fe;padding-left:9px}
+.eo-kb-citation blockquote{margin:0;font-size:12px;line-height:1.7}
+.eo-kb-source{font-size:11px;line-height:1.6;text-align:left;color:#2563eb;border:0;background:transparent;padding:5px 0;cursor:pointer;overflow-wrap:anywhere}
+.eo-kb-source:disabled,.eo-send:disabled{opacity:.45;cursor:default}
+.eo-knowledge .eo-upload{container-type:inline-size}
+.eo-library{container-type:inline-size}
+.eo-library-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
+.eo-library-toolbar h3{margin:0;font-size:14px}
+.eo-library-toolbar p{font-size:11.5px;color:#6b7280;margin:5px 0 0;line-height:1.7}
+.eo-library-toolbar>.eo-tag{white-space:nowrap}
+.eo-library-filters{display:flex;gap:8px;flex-wrap:wrap}
+.eo-library-filters input,.eo-library-filters select{min-width:0;border:1px solid #e0e5ed;background:#fff;border-radius:7px;padding:7px 9px;font:12px/1.5 inherit;color:#374151}
+.eo-library-filters input{flex:1;min-width:150px}
+.eo-library-count{font-size:11px;color:#9ca3af;margin:10px 0}
+.eo-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.eo-library-card{display:block;text-align:left;padding:12px;color:inherit;font:inherit;cursor:pointer;box-shadow:0 1px 2px #10182808}
+.eo-library-card:hover,.eo-library-card.on{border-color:#9bbdf7;background:#f8fbff}
+.eo-library-card-head{display:flex;align-items:center;gap:8px}
+.eo-library-card-head b{font-size:13px}
+.eo-library-card-head>.eo-tag{margin-left:auto;white-space:nowrap}
+.eo-library-basics{font-size:11.5px;color:#6b7280;margin:9px 0}
+.eo-library-projects{display:flex;gap:4px;flex-wrap:wrap;font-size:11px;color:#4b5563;overflow-wrap:anywhere}
+.eo-library-projects span{background:#f3f4f6;border-radius:4px;padding:3px 6px}
+.eo-library-card-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #eef0f3;margin-top:10px;padding-top:8px;font-size:10px;color:#9ca3af}
+.eo-library-state{border-radius:4px;padding:2px 6px;white-space:nowrap}
+.eo-library-state.A{color:#047857;background:#ecfdf5}.eo-library-state.B{color:#b45309;background:#fffbeb}.eo-library-state.C{color:#b91c1c;background:#fef2f2}
+.eo-library-detail h3{font-size:13px;margin:10px 0}.eo-library-detail small{font-size:10px;color:#9ca3af}
+.eo-library-detail dd{margin:0}.eo-library-detail dl{margin:12px 0 20px}
+.eo-library-history{margin-bottom:8px;font-size:12px;overflow-wrap:anywhere}
+.eo-library-history p,.eo-library-empty p{color:#6b7280;font-size:11.5px}
+@container(max-width:480px){.eo-library-grid{grid-template-columns:minmax(0,1fr)}}
 /* 看板 */
 .eo-filters{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:11px}
 .eo-chip{border:1px solid #e6e8ec;background:#fff;border-radius:999px;padding:3px 10px;font-size:11.6px;color:#4b5563;cursor:pointer}
@@ -130,6 +280,50 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-src.fs{background:#ecfdf5;color:#047857}.eo-src.man{background:#fef3c7;color:#92400e}
 .eo-why{margin-top:4px;font-size:11.2px;color:#4b5563;line-height:1.5}
 .eo-why.gap{color:#b45309}
+/* Native DSH conversation: only container sizing, no host CSS class overrides. */
+
+.eo-project-layout{grid-template-columns:minmax(0,calc(100% - var(--eo-panel-width))) minmax(0,var(--eo-panel-width));background:#fafbfc;overflow:hidden;transition:grid-template-columns .28s cubic-bezier(.2,.8,.2,1)}
+.eo-project-layout>.eo-agent{border:0;background:transparent;width:100%;max-width:880px;margin:0 auto;padding:0 20px 14px;overflow:hidden;box-sizing:border-box}
+.eo-project-layout.panel-open>.eo-agent{padding:0 12px 10px}
+.eo-project-layout .eo-ahead,.eo-project-layout .eo-chat-context{display:none}
+.eo-business-panel{min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;background:#f7f8fa;border-left:1px solid #e2e5eb;opacity:0;visibility:hidden;transform:translateX(24px);transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s,visibility .28s;box-shadow:-5px 0 18px #18253b05}
+.panel-open>.eo-business-panel{opacity:1;visibility:visible;transform:translateX(0)}
+.eo-panel-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#fff;border-bottom:1px solid #e6e8ec;flex-shrink:0;white-space:nowrap}
+.eo-panel-header h2{font-size:13px;font-weight:600;margin:0}
+.eo-panel-close{display:grid;place-items:center;border:0;border-radius:6px;background:transparent;color:#79818e;font-size:22px;width:26px;height:26px;cursor:pointer;line-height:1}
+.eo-panel-close:hover{background:#f0f2f5;color:#1f2937}
+.eo-panel-close:focus-visible,.eo-panel-resizer:focus-visible{outline:2px solid #2563eb;outline-offset:-2px}
+.eo-panel-actions{display:flex;justify-content:flex-end;gap:6px;padding:8px 12px 0;flex-wrap:wrap}.eo-panel-actions .eo-btn{font-size:11px;padding:5px 9px}
+.eo-panel-content{flex:1;min-height:0;padding:12px}
+.eo-panel-resizer{position:absolute;left:-4px;top:0;bottom:0;width:8px;z-index:10;cursor:col-resize;touch-action:none}
+.eo-panel-resizer:hover,.eo-panel-resizer:focus-visible{background:#2563eb22}
+.eo-project-layout.is-resizing{transition:none;user-select:none;cursor:col-resize}
+.eo-project-layout.is-resizing>.eo-business-panel{transition:none}
+@media(prefers-reduced-motion:reduce){.eo-project-layout,.eo-business-panel{transition:none}}
+.eo-project-layout [data-conversation-scroll]:has(.eo-home-welcome){position:relative}
+.eo-home-welcome{position:absolute;top:0;left:0;right:0;height:max(0px,calc(100% - var(--dsh-composer-height,180px)));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:16px;text-align:center;box-sizing:border-box;pointer-events:none}
+.eo-home-welcome h2{font-size:22px;font-weight:600;margin:0 0 8px;color:#1f2937}
+.eo-home-welcome p{font-size:12px;color:#6b7280;margin:0}
+
+.eo-home-dock{padding:0 var(--dsh-composer-side-clearance,16px)}
+.eo-home-cards{box-sizing:border-box;display:flex;flex-wrap:wrap;gap:8px;width:100%;max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto;padding:0 0 4px;flex-shrink:0}
+.eo-home-card{display:inline-flex;align-items:center;gap:7px;text-align:left;border:1px solid #e2e5e9;border-radius:16px;padding:7px 12px;background:rgba(255,255,255,.88);color:#596273;cursor:pointer;transition:border-color .15s,background .15s}
+.eo-home-card[aria-pressed="true"]{background:#edf3ff;border-color:#b9cdf1;color:#285d9e}
+.eo-home-card:hover{border-color:#9bb9f4;background:#f5f8ff}
+.eo-home-card:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.eo-home-card-icon{color:#7c8799;font-size:14px;line-height:1;flex-shrink:0}
+.eo-home-card strong{display:block;font-size:12px;font-weight:500}
+.eo-home-card small{display:none}
+.eo-home-card-arrow{display:none}
+@media(max-height:650px){.eo-home-card{padding:10px 12px}.eo-project-layout>.eo-agent{padding-bottom:10px}}
+
+.eo-native-chat{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden}
+.eo-native-chat > div{min-height:0;flex:1}
+.eo-native-chat [data-composer-seat]{margin-top:auto;flex-shrink:0;bottom:0;--dsh-composer-text-max-height:180px}
+.eo-project-layout .eo-native-chat [data-composer-seat]{padding-top:28px;background:linear-gradient(180deg,rgba(250,251,252,0) 0px,rgba(250,251,252,.85) 24px,#fafbfc 54px);}
+.eo-chat-context{padding:6px 13px;border-bottom:1px solid #eef0f3;color:#6b7280;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eo-chat-state{padding:20px 14px;font-size:12px;color:#6b7280;overflow-wrap:anywhere}
+.eo-agent{min-width:0}
 /* Agent */
 .eo-agent{border-left:1px solid #e6e8ec;background:#fff;display:flex;flex-direction:column;min-height:0}
 .eo-ahead{display:flex;align-items:center;gap:8px;padding:11px 13px;border-bottom:1px solid #eef0f3;font-size:12.5px;font-weight:620}
@@ -177,7 +371,43 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     { id: "d4", title: "蚂蚁 · 金融文档抽取", org: "蚂蚁集团", count: 12, state: "已完成", dot: "" },
   ]
 
-  const PROFILE_FIELDS = ["专业背景", "从业经验", "能力要求", "其他条件"]
+  const PROJECT_META_KEY = "dsh-expert-ops:project-meta:v1"
+  function loadProjects() {
+    let saved = {}
+    try { saved = JSON.parse(localStorage.getItem(PROJECT_META_KEY) || "{}") || {} } catch (_) {}
+    const custom = Object.entries(saved).filter(([id, value]) => id.startsWith("project-") && value && typeof value.title === "string")
+      .map(([id, value]) => ({ id, title: value.title, count: 0, state: "草稿", dot: "draft", org: "" }))
+    return [...DEMANDS, ...custom].map((d) => {
+      const meta = saved[d.id] || {}
+      return { ...d,
+        title: typeof meta.title === "string" && meta.title.trim() ? meta.title.trim().slice(0, 80) : d.title,
+        pinned: meta.pinned === true,
+        ended: typeof meta.ended === "boolean" ? meta.ended : d.state === "已完成",
+        deletedAt: Number.isFinite(meta.deletedAt) && meta.deletedAt > 0 ? meta.deletedAt : null,
+      }
+    })
+  }
+  function sortedProjects(projects) {
+    return projects.filter((p) => !p.deletedAt).sort((a, b) => Number(b.pinned) - Number(a.pinned))
+  }
+
+  const PROFILE_SCHEMA = [
+    { key: "domain", label: "所属领域", group: "专业与资质", type: "tags", op: "any_of" },
+    { key: "certificates", label: "资质证书", group: "专业与资质", type: "tags", op: "any_of" },
+    { key: "education", label: "最高学历", group: "教育背景", type: "education", op: "gte" },
+    { key: "school", label: "最高学历学校", group: "教育背景", type: "tags", op: "any_of" },
+    { key: "major", label: "最高学历专业", group: "教育背景", type: "tags", op: "any_of" },
+    { key: "graduation", label: "毕业时间", group: "教育背景", type: "month", op: "lte" },
+    { key: "employer", label: "工作单位", group: "任职与投入", type: "tags", op: "any_of" },
+    { key: "position", label: "职位", group: "任职与投入", type: "tags", op: "any_of" },
+    { key: "years", label: "工作年限", group: "任职与投入", type: "number", op: "gte", unit: "年" },
+    { key: "hours", label: "工作时长", group: "任职与投入", type: "number", op: "gte", unit: "小时 / 周" },
+    { key: "background", label: "专业背景", group: "经历与能力", type: "text", op: "semantic" },
+    { key: "experience", label: "从业经验", group: "经历与能力", type: "text", op: "semantic" },
+    { key: "abilities", label: "能力要求", group: "经历与能力", type: "text", op: "semantic" },
+    { key: "special", label: "特殊经历", group: "经历与能力", type: "text", op: "semantic" },
+  ]
+  const PROFILE_FIELDS = PROFILE_SCHEMA.map((field) => field.label)
   const JD_FIELDS = ["职位名称", "岗位说明", "所属领域", "岗位职责", "任职要求", "核心能力", "价格", "招募人数"]
 
   // 示例成果按需求 ID 归属。其他需求暂未提供解析样例。
@@ -224,18 +454,111 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
   // ---------------- 极简 store ----------------
   const store = {
     open: false,
-    tab: "p3",
+    tab: "home",
     demand: "d1",
     expandedDemand: "d1",
-    nav: "demand",
+    nav: "project",
+    knowledgeSelected: null,
+    knowledgeMessages: [],
+    knowledgeDraft: "",
+    libraryQuery: "",
+    librarySource: "all",
+    libraryStatus: "all",
+    librarySelected: null,
     drawer: null,
     toast: null,
     documents: {},
-    experts: EXPERTS.map((e) => ({ ...e })),
+    artifactDrafts: {},
+    artifactRevision: 0,
+    candidateReceipts: loadCandidateReceipts(),
+    projects: loadProjects(),
+    showEnded: false,
+    // Existing candidates are demo data for the multilingual speech project; never imply real history.
+    experts: EXPERTS.map((e, i) => ({ ...e, id: "demo-expert-" + String(i + 1).padStart(2, "0"), candidateProjectIds: ["d1"] })),
+  }
+  // A deleted default project must not leave the selected navigation on a hidden item after reload.
+  if (!store.projects.some((p) => p.id === store.demand && !p.deletedAt)) {
+    const visible = sortedProjects(store.projects)
+    const initial = visible.find((p) => !p.ended) || visible[0]
+    store.demand = initial?.id || null
+    store.expandedDemand = initial?.id || null
+    store.showEnded = !!initial?.ended
   }
   const listeners = new Set()
   const emit = () => { for (const fn of listeners) fn() }
   const set = (patch) => { Object.assign(store, patch); emit() }
+
+  function updateProject(id, patch) {
+    const projects = store.projects.map((p) => p.id === id ? { ...p, ...patch } : p)
+    const remaining = sortedProjects(projects)
+    const current = remaining.find((p) => p.id === store.demand)
+    const next = current || remaining.find((p) => !p.ended) || remaining[0]
+    set({ projects, demand: next?.id || null,
+      expandedDemand: current ? store.expandedDemand : next?.id || null,
+      showEnded: current ? store.showEnded : !!next?.ended, drawer: null })
+    try { persistProjects(projects) }
+    catch (_) { toast("当前浏览器无法保存项目设置；刷新后本次修改可能丢失。") }
+  }
+
+  function persistProjects(projects) {
+    const metadata = Object.fromEntries(projects.map(({ id, title, pinned, ended, deletedAt }) =>
+      [id, { title, pinned, ended, deletedAt }]))
+    localStorage.setItem(PROJECT_META_KEY, JSON.stringify(metadata))
+  }
+
+  function createProject(title) {
+    const project = { id: "project-" + crypto.randomUUID(), title: title.trim(), count: 0,
+      org: "", state: "草稿", dot: "draft", pinned: false, ended: false, deletedAt: null }
+    const projects = [...store.projects, project]
+    // Persist the project before opening its conversation; failed storage must not create an orphan.
+    persistProjects(projects)
+    set({ projects, demand: project.id, expandedDemand: project.id, nav: "project", tab: "home", drawer: null })
+    return project
+  }
+
+  // Native session bridge. Replace this mapping repository with the business DB later.
+  const SESSION_MAP_KEY = "dsh-expert-ops:project-sessions:v1"
+  const sessionRequests = new Map()
+  function readSessionMap() {
+    const raw = localStorage.getItem(SESSION_MAP_KEY)
+    const map = raw ? JSON.parse(raw) : {}
+    if (!map || typeof map !== "object" || Array.isArray(map)) throw new Error("项目会话绑定损坏，请恢复本地项目数据。")
+    return map
+  }
+  function saveSessionLink(projectId, link) {
+    const map = readSessionMap()
+    map[projectId] = link
+    localStorage.setItem(SESSION_MAP_KEY, JSON.stringify(map))
+  }
+  async function ensureProjectSession(sessions, project) {
+    if (sessionRequests.has(project.id)) return sessionRequests.get(project.id)
+    const operation = async () => {
+      let link = readSessionMap()[project.id]
+      if (link && (typeof link.sessionId !== "string" || !link.sessionId)) throw new Error("项目会话 ID 无效。")
+      if (link?.ready) return link.sessionId
+      if (!link) {
+        link = { sessionId: crypto.randomUUID(), ready: false }
+        saveSessionLink(project.id, link)
+      }
+      // On an interrupted create, first recover the reserved ID from the host catalog.
+      await sessions.refresh()
+      if (sessions.manager.getListSnapshot().state === "error") throw new Error("无法读取 DSH 会话列表，请恢复连接后重试。")
+      let id = link.sessionId
+      if (!sessions.list.getSnapshot().byId[id]) id = await sessions.create({ sessionId: id })
+      saveSessionLink(project.id, { sessionId: id, ready: true })
+      const ref = sessions.retain(id, { source: "expertOpsNaming" })
+      try {
+        const binding = await ref.ready
+        if (binding.session.getSnapshot().openState === "open") await binding.session.rename("专家运营 · " + project.title)
+      } catch (_) { /* A title failure must not discard a successfully persisted session. */ }
+      finally { ref.release() }
+      return id
+    }
+    const promise = (navigator.locks ? navigator.locks.request("expert-ops-session-bindings", operation) : operation())
+    sessionRequests.set(project.id, promise)
+    try { return await promise }
+    finally { if (sessionRequests.get(project.id) === promise) sessionRequests.delete(project.id) }
+  }
 
   function useStore() {
     const [, force] = useState(0)
@@ -270,11 +593,23 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
   }
 
   // ---------------- 工作台 ----------------
-  function Workbench() {
+  function Workbench({ sessions, SessionProvider, renderSlot }) {
     const s = useStore()
-    const active = DEMANDS.find((d) => d.id === s.demand) || DEMANDS[0]
-    const recruitment = RECRUITMENT_RESULTS[active.id]
-    const list = (bucket) => s.experts.filter((e) => e.bucket === bucket)
+    const active = sortedProjects(s.projects).find((d) => d.id === s.demand) || sortedProjects(s.projects)[0]
+    const knowledge = s.nav === "knowledge"
+    const library = s.nav === "experts"
+    const home = s.nav === "project" && s.tab === "home"
+    const projectMode = !knowledge && !library
+    const panelOpen = projectMode && !!active && !home
+    const [panelWidth, setPanelWidth] = useState(58)
+    const [resizing, setResizing] = useState(false)
+    const lastFeature = useRef("recruitment")
+    if (s.tab === "recruitment" || s.tab === "p3") lastFeature.current = s.tab
+    const feature = home ? lastFeature.current : s.tab
+    const featureTitle = feature === "recruitment" ? "需求与招募成果" : "匹配看板"
+    const bodyRef = useRef(null)
+    const recruitment = recruitmentResult(active?.id)
+    const projectExperts = s.experts.filter((e) => e.candidateProjectIds.includes(active?.id))
 
     const tabs = [
       ["recruitment", "需求与招募成果", null],
@@ -287,64 +622,423 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
         n("aside", { className: "eo-left" },
           n("div", { className: "eo-brand" }, n("span", { className: "dot" }), "专家运营", n("small", null, "原识 × DSH")),
           n("div", { className: "eo-nav" },
-            [["demand", "需求"], ["experts", "专家库"], ["settings", "设置"]].map(([id, label]) =>
-              n("button", { key: id, className: s.nav === id ? "on" : "", onClick: () => set({ nav: id }) },
-                n("span", { className: "ico" }, id === "demand" ? "▤" : id === "experts" ? "◎" : "⚙"), label))),
-          n("div", { className: "eo-sec" }, "进行中的需求"),
-          n("div", { className: "eo-demands" },
-            DEMANDS.map((d) => n("div", { key: d.id },
-              n("button", {
-                className: "eo-demand" + (d.id === s.demand ? " on" : ""),
-                "aria-expanded": s.expandedDemand === d.id,
-                "aria-controls": "eo-project-menu-" + d.id,
-                onClick: () => set({ expandedDemand: s.expandedDemand === d.id ? null : d.id }),
-              },
-                n("b", null, d.title),
-                n("i", { className: "eo-demand-chevron", "aria-hidden": true }, "▸"),
-                n("span", null, n("i", { className: "eo-sdot " + d.dot }), d.state + " · " + d.count + " 人")),
-              n("div", { id: "eo-project-menu-" + d.id, hidden: s.expandedDemand !== d.id },
-                n("nav", { className: "eo-project-menu", "aria-label": d.title + "功能" },
-                  tabs.map(([id, label, cnt]) => n("button", {
-                    key: id,
-                    className: s.demand === d.id && s.tab === id ? "on" : "",
-                    "aria-current": s.demand === d.id && s.tab === id ? "page" : undefined,
-                    onClick: () => set({ demand: d.id, tab: id, expandedDemand: d.id, drawer: null }),
-                  }, label, cnt != null ? n("span", { className: "eo-badge" }, cnt) : null))))))),
+            [["knowledge", "知识库"], ["experts", "专家库"], ["settings", "设置"]].map(([id, label]) =>
+              n("button", { key: id, className: s.nav === id ? "on" : "", onClick: () => set({ nav: id, drawer: null }) },
+                n("span", { className: "ico" }, id === "knowledge" ? "▤" : id === "experts" ? "◎" : "⚙"), label))),
+          n(ProjectList, { tabs }),
           n("div", { className: "eo-me" }, n("div", { className: "eo-avatar" }, "尚"), n("div", null, "尚楚哲", n("br"), n("span", { style: { fontSize: 10.5 } }, "专家运营")))),
         // 右栏
         n("main", { className: "eo-right" },
           n("header", { className: "eo-head" },
             n("div", { className: "eo-htop" },
-              n("h1", null, active.title,
-                n("span", { className: "eo-title-divider", "aria-hidden": true }, "/"),
-                n("span", { className: "eo-title-space" }, s.tab === "recruitment" ? "需求与招募成果" : "匹配看板")),
-              n("div", { className: "eo-hactions" },
+              n("h1", null, knowledge ? "知识库" : library ? "专家库" : active?.title || "暂无项目"))),
+          n("div", { ref: bodyRef, className: "eo-body" + (projectMode ? " eo-project-layout" + (panelOpen ? " panel-open" : "") + (resizing ? " is-resizing" : "") : ""),
+            style: projectMode ? { "--eo-panel-width": panelOpen ? panelWidth + "%" : "0%" } : undefined },
+            projectMode ? n(AgentPanel, { key: active?.id || "none", project: active, home: true, sessions, SessionProvider, renderSlot }) :
+              n("div", { className: "eo-canvas" }, knowledge ? n(KnowledgeView) : n(ExpertLibraryView)),
+            projectMode ? n("section", { className: "eo-business-panel", "aria-label": "项目业务面板", "aria-hidden": !panelOpen, inert: !panelOpen ? "" : undefined },
+              n("div", { className: "eo-panel-resizer", role: "separator", "aria-label": "调整业务面板宽度", "aria-orientation": "vertical", "aria-valuemin": 38, "aria-valuemax": 70, "aria-valuenow": panelWidth, tabIndex: panelOpen ? 0 : -1,
+                onPointerDown: (event) => { if (event.button !== 0) return; event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); setResizing(true) },
+                onPointerMove: (event) => { if (!event.currentTarget.hasPointerCapture(event.pointerId)) return; const rect = bodyRef.current?.getBoundingClientRect(); if (rect?.width) setPanelWidth(Math.max(38, Math.min(70, (rect.right - event.clientX) / rect.width * 100))) },
+                onPointerUp: (event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); setResizing(false) },
+                onLostPointerCapture: () => setResizing(false),
+                onDoubleClick: () => setPanelWidth(58),
+                onKeyDown: (event) => { if (!["ArrowLeft", "ArrowRight", "Home"].includes(event.key)) return; event.preventDefault(); setPanelWidth((width) => event.key === "Home" ? 58 : Math.max(38, Math.min(70, width + (event.key === "ArrowLeft" ? 2 : -2)))) } }),
+              n("header", { className: "eo-panel-header" },
+                n("h2", null, featureTitle),
+                n("button", { className: "eo-panel-close", title: "关闭业务面板", "aria-label": "关闭业务面板", onClick: () => { openProjectSpace(active.id, "home"); bodyRef.current?.querySelector('.eo-home-card')?.focus() } }, "×")),
+              feature === "p3" ? n("div", { className: "eo-panel-actions" },
                 n("button", { className: "eo-btn", onClick: () => toast("导出 mock 名单（M3 接飞书表格）") }, "导出名单"),
                 n("button", { className: "eo-btn", onClick: () => toast("已生成分享链接（示意）") }, "分享"),
-                n("button", { className: "eo-btn primary", onClick: () => toast("已触发 expert_match（mock，3.2s）") }, "重新匹配")))),
-          n("div", { className: "eo-body" },
-            n("div", { className: "eo-canvas" },
-              s.tab === "recruitment"
-                ? n(RecruitmentView, { key: active.id, demandId: active.id, result: recruitment })
-                : n(BoardView, { list, total: s.experts.length })),
-            n(AgentPanel)),
+                n("button", { className: "eo-btn primary", onClick: () => toast("已触发 expert_match（mock，3.2s）") }, "重新匹配")) : null,
+              n("div", { className: "eo-canvas eo-panel-content" },
+                active ? n("div", { hidden: feature !== "recruitment" }, n(RecruitmentView, { key: active.id, demandId: active.id, result: recruitment })) : null,
+                active ? n("div", { hidden: feature !== "p3" }, n(BoardView, { key: active.id, projectId: active.id, experts: projectExperts })) : null)) :
+              knowledge ? n(KnowledgeAgent) : n(ExpertLibraryPanel)),
           s.drawer ? n(Drawer, { expert: s.drawer }) : null,
           s.toast ? n("div", { className: "eo-toast" }, s.toast) : null)))
   }
 
-  function RecruitmentFields({ title, badge, labels, values, profile }) {
-    return n("section", { className: "eo-card eo-pad" },
-      n("h3", null, title, n("span", { className: "eo-tag" }, badge)),
+  function ProjectList({ tabs }) {
+    const s = useStore()
+    const [menu, setMenu] = useState(null)
+    const [dialog, setDialog] = useState(null)
+    const menuRef = useRef(null)
+    const trigger = useRef(null)
+    const projects = sortedProjects(s.projects)
+    const ongoing = projects.filter((p) => !p.ended)
+    const ended = projects.filter((p) => p.ended)
+    const lastDeleted = s.projects.filter((p) => p.deletedAt).sort((a, b) => b.deletedAt - a.deletedAt)[0]
+    const target = s.projects.find((p) => p.id === menu?.id)
+    function closeMenu(restoreFocus = false) {
+      setMenu(null)
+      if (restoreFocus) trigger.current?.focus()
+    }
+    function openMenu(event, project, keyboard = false) {
+      event.preventDefault()
+      trigger.current = event.currentTarget
+      const rect = event.currentTarget.getBoundingClientRect()
+      setMenu({ id: project.id,
+        x: Math.max(8, Math.min(keyboard ? rect.left + 12 : event.clientX, window.innerWidth - 188)),
+        y: Math.max(8, Math.min(keyboard ? rect.bottom : event.clientY, window.innerHeight - 176)) })
+    }
+    useEffect(() => {
+      if (!menu) return
+      menuRef.current?.querySelector('button')?.focus()
+      const outside = (event) => { if (!menuRef.current?.contains(event.target)) closeMenu() }
+      const dismiss = () => closeMenu()
+      document.addEventListener('pointerdown', outside)
+      window.addEventListener('resize', dismiss)
+      document.addEventListener('scroll', dismiss, true)
+      return () => {
+        document.removeEventListener('pointerdown', outside)
+        window.removeEventListener('resize', dismiss)
+        document.removeEventListener('scroll', dismiss, true)
+      }
+    }, [menu])
+    function menuAction(action) {
+      if (!target) return
+      closeMenu(true)
+      if (action === 'rename' || action === 'delete') setDialog({ kind: action, project: target })
+      else updateProject(target.id, action === 'pin' ? { pinned: !target.pinned } : { ended: !target.ended })
+    }
+    function row(d) {
+      return n("div", { key: d.id, className: "eo-project-item" },
+        n("button", {
+          className: "eo-demand" + (d.id === s.demand ? " on" : ""),
+          title: d.title, "aria-expanded": s.expandedDemand === d.id,
+          "aria-controls": "eo-project-menu-" + d.id,
+          onContextMenu: (event) => openMenu(event, d),
+          onKeyDown: (event) => {
+            if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) openMenu(event, d, true)
+          },
+          onClick: () => openProjectSpace(d.id, "home"),
+        }, n("b", null, d.title),
+          n("i", { className: "eo-demand-chevron", "aria-hidden": true }, "▸"),
+          n("span", null, n("i", { className: "eo-sdot " + (d.ended ? "draft" : d.dot) }),
+            (d.pinned ? "置顶 · " : "") + (d.ended ? "已结束" : d.state) + " · " + d.count + " 人")),
+        n("button", { className: "eo-project-more", "aria-label": d.title + "项目选项", title: "项目选项（也可右键）",
+          onClick: (event) => openMenu(event, d, true) }, "⋯"),
+        n("div", { id: "eo-project-menu-" + d.id, hidden: s.expandedDemand !== d.id },
+          n("nav", { className: "eo-project-menu", "aria-label": d.title + "功能" },
+            tabs.map(([id, label, cnt]) => n("button", {
+              key: id, className: s.nav === "project" && s.demand === d.id && s.tab === id ? "on" : "",
+              "aria-current": s.nav === "project" && s.demand === d.id && s.tab === id ? "page" : undefined,
+              onClick: () => set({ nav: "project", demand: d.id, tab: id, expandedDemand: d.id, drawer: null }),
+            }, label, cnt != null ? n("span", { className: "eo-badge" }, s.experts.filter((expert) => expert.candidateProjectIds.includes(d.id)).length) : null)))))
+    }
+    return n(React.Fragment, null,
+      n("div", { className: "eo-sec" }, "进行中的项目", n("button", { className: "eo-btn", onClick: () => setDialog({ kind: "create", project: { id: "new", title: "" } }) }, "+ 新建")),
+      n("div", { className: "eo-demands" }, ongoing.map(row),
+        !ongoing.length ? n("p", { className: "eo-list-empty" }, "暂无进行中的项目") : null,
+        n("button", { className: "eo-ended-toggle", "aria-expanded": s.showEnded, "aria-controls": "eo-ended-projects",
+          onClick: () => set({ showEnded: !s.showEnded }) }, s.showEnded ? "▾ 已结束" : "▸ 已结束", n("span", { className: "eo-badge" }, ended.length)),
+        n("div", { id: "eo-ended-projects", hidden: !s.showEnded }, ended.length ? ended.map(row) : n("p", { className: "eo-list-empty" }, "暂无已结束项目")),
+        lastDeleted ? n("button", { className: "eo-undo-delete", onClick: () => updateProject(lastDeleted.id, { deletedAt: null }) }, "撤销删除：" + lastDeleted.title) : null),
+      menu && target ? n("div", { className: "eo-context-menu", ref: menuRef, role: "menu", "aria-label": target.title + "项目选项",
+        style: { left: menu.x, top: menu.y },
+        onKeyDown: (event) => {
+          const items = [...event.currentTarget.querySelectorAll('button')]
+          const index = items.indexOf(document.activeElement)
+          if (event.key === 'Escape') { event.preventDefault(); closeMenu(true) }
+          else if (event.key === 'Tab') closeMenu()
+          else if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
+            event.preventDefault()
+            const next = event.key === 'Home' ? 0 : event.key === 'End' ? items.length - 1 : (index + (event.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length
+            items[next]?.focus()
+          }
+        } },
+        n("button", { role: "menuitem", onClick: () => menuAction('rename') }, "重命名"),
+        n("button", { role: "menuitem", onClick: () => menuAction('pin') }, target.pinned ? "取消置顶" : "置顶"),
+        n("button", { role: "menuitem", onClick: () => menuAction('end') }, target.ended ? "恢复进行中" : "标记为已结束"),
+        n("button", { role: "menuitem", className: "danger", onClick: () => menuAction('delete') }, "删除")) : null,
+      dialog ? n(ProjectDialog, { key: dialog.project.id + dialog.kind, ...dialog, onClose: () => { setDialog(null); trigger.current?.focus() } }) : null)
+  }
+
+  function ProjectDialog({ kind, project, onClose }) {
+    const [name, setName] = useState(project.title)
+    const [error, setError] = useState("")
+    const ref = useRef(null)
+    useEffect(() => {
+      const first = ref.current?.querySelector('input, button')
+      first?.focus()
+      if (first?.tagName === 'INPUT') first.select()
+    }, [])
+    const deleting = kind === 'delete'
+    function submit(event) {
+      event.preventDefault()
+      if (!deleting && !name.trim()) { setError("请输入项目名称。"); return }
+      try {
+        if (kind === "create") createProject(name)
+        else updateProject(project.id, deleting ? { deletedAt: Date.now() } : { title: name.trim() })
+        onClose()
+      } catch (_) { setError("项目保存失败，请检查浏览器存储后重试。") }
+    }
+    return n("div", { className: "eo-project-dialog-backdrop", onClick: (event) => { if (event.target === event.currentTarget) onClose() } },
+      n("form", { className: "eo-project-dialog", ref, role: "dialog", "aria-modal": true, "aria-labelledby": "eo-project-dialog-title", onSubmit: submit,
+        onKeyDown: (event) => {
+          if (event.key === 'Escape') { event.preventDefault(); onClose() }
+          if (event.key === 'Tab') {
+            const items = [...event.currentTarget.querySelectorAll('input, button')]
+            if (event.shiftKey && document.activeElement === items[0]) { event.preventDefault(); items.at(-1)?.focus() }
+            else if (!event.shiftKey && document.activeElement === items.at(-1)) { event.preventDefault(); items[0]?.focus() }
+          }
+        } },
+        n("h3", { id: "eo-project-dialog-title" }, deleting ? "删除项目" : kind === "create" ? "新建项目" : "重命名项目"),
+        deleting ? n("p", null, "将「" + project.title + "」从项目列表移除。删除后可在左侧撤销，暂存文档不会被清除。") :
+          n("label", null, "项目名称", n("input", { value: name, maxLength: 80, onChange: (event) => { setName(event.target.value); setError("") }, "aria-invalid": !!error })),
+        error ? n("p", { role: "alert", className: "eo-upload-error" }, error) : null,
+        n("div", { className: "eo-project-dialog-actions" },
+          n("button", { className: "eo-btn", type: "button", onClick: onClose }, "取消"),
+          n("button", { className: "eo-btn " + (deleting ? "danger" : "primary"), type: "submit" }, deleting ? "确认删除" : "保存"))))
+  }
+
+  const artifactKey = (projectId, kind) => "dsh-expert-ops:artifact:v1:" + projectId + ":" + kind
+  function normalizeArtifact(labels, values) {
+    return Object.fromEntries(labels.map((label) => {
+      const text = String(values?.[label] ?? "").trim()
+      if (label === "招募人数" && text && (!/^\d+$/.test(text) || !Number.isSafeInteger(Number(text))))
+        throw new Error("招募人数请填写非负整数，或留空。")
+      return [label, !text ? null : label === "招募人数" ? Number(text) : text]
+    }))
+  }
+  function artifactCopyText(title, labels, values) {
+    const rows = labels.filter((label) => values?.[label] != null && String(values[label]).trim())
+      .map((label) => label + "：" + values[label] + (label === "招募人数" ? " 人" : ""))
+    return rows.length ? title + "\n\n" + rows.join("\n\n") : ""
+  }
+  function recruitmentResult(projectId) {
+    const base = RECRUITMENT_RESULTS[projectId]
+    if (!base) return base
+    const result = { ...base }
+    for (const kind of ["profile", "jd"]) {
+      try {
+        const saved = JSON.parse(localStorage.getItem(artifactKey(projectId, kind)) || "null")
+        if (saved?.values && typeof saved.values === "object") result[kind] = normalizeArtifact(kind === "profile" ? PROFILE_FIELDS : JD_FIELDS, saved.values)
+      } catch (_) { /* Preserve the original sample if a stored override is unreadable. */ }
+    }
+    return result
+  }
+  function saveArtifact(projectId, kind, labels, draft) {
+    const values = normalizeArtifact(labels, draft)
+    localStorage.setItem(artifactKey(projectId, kind), JSON.stringify({ values, updatedAt: new Date().toISOString(), origin: "manual" }))
+    const drafts = { ...store.artifactDrafts }; delete drafts[projectId + ":" + kind]
+    set({ artifactDrafts: drafts, artifactRevision: store.artifactRevision + 1 })
+  }
+
+  const profileKey = (projectId) => "dsh-expert-ops:profile-criteria:v2:" + projectId
+  const EDUCATION_LEVELS = ["高中 / 中专", "大专", "本科", "硕士", "博士"]
+  function normalizeProfile(model) {
+    const conditions = {}
+    for (const field of PROFILE_SCHEMA) {
+      const condition = model.conditions?.[field.key] || {}
+      let value = condition.value
+      if (field.type === "tags") {
+        value = [...new Set((Array.isArray(value) ? value : String(value ?? "").split(/[、，,;；\n]/)).map((item) => String(item).trim()).filter(Boolean))]
+        if (!value.length) value = null
+      } else {
+        value = String(value ?? "").trim() || null
+        if (value !== null && field.type === "number") {
+          if (!/^\d+(?:\.\d+)?$/.test(value) || !Number.isFinite(Number(value)) || Number(value) > Number.MAX_SAFE_INTEGER)
+            throw new Error(field.label + "请填写非负数，或留空。")
+          value = Number(value)
+          if (field.key === "hours" && value > 168) throw new Error("每周工作时长不能超过 168 小时。")
+        }
+        if (value !== null && field.type === "month" && !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) throw new Error("毕业时间请选择有效年月。")
+        if (value !== null && field.type === "education" && !EDUCATION_LEVELS.includes(value)) throw new Error("请选择最高学历要求。")
+      }
+      conditions[field.key] = { value,
+        operator: field.type === "tags" && condition.operator === "all_of" ? "all_of" : field.op,
+        requirement: field.type === "text" ? "semantic" : condition.requirement === "preferred" ? "preferred" : "required" }
+    }
+    return { schemaVersion: 2, missingPolicy: "needs_verification", conditions,
+      legacyOther: typeof model.legacyOther === "string" ? model.legacyOther : "" }
+  }
+  function loadProfile(projectId) {
+    const saved = localStorage.getItem(profileKey(projectId))
+    if (saved) return normalizeProfile(JSON.parse(saved))
+    const legacy = JSON.parse(localStorage.getItem(artifactKey(projectId, "profile")) || "null")
+    const base = RECRUITMENT_RESULTS[projectId]?.profile || {}
+    const source = legacy?.values || base
+    const conditions = {}
+    for (const field of PROFILE_SCHEMA) conditions[field.key] = { value: source[field.label] ?? null }
+    // The bundled example explicitly states this numeric threshold. Do not infer it from edited prose.
+    if (!legacy && projectId === "d1") conditions.years = { value: 2 }
+    return normalizeProfile({ conditions, legacyOther: source.其他条件 || "" })
+  }
+  function profileValueText(field, condition) {
+    const value = condition?.value
+    if (value == null || value === "" || Array.isArray(value) && !value.length) return "不限"
+    if (Array.isArray(value)) return value.join("、")
+    if (field.type === "number") return "至少 " + value + " " + field.unit
+    if (field.type === "education") return value + "及以上"
+    if (field.type === "month") return value + " 及以前"
+    return String(value)
+  }
+  function profileHasValue(condition) {
+    return condition?.value != null && String(condition.value).trim() !== ""
+  }
+  function profileCopy(model) {
+    const rows = PROFILE_SCHEMA.filter((field) => profileHasValue(model.conditions[field.key])).map((field) => {
+      const condition = model.conditions[field.key]
+      const rule = field.type === "text" ? "" : condition.requirement === "required" ? " [必须满足]" : " [优先考虑]"
+      const operator = field.type === "tags" ? condition.operator === "all_of" ? "（全部符合）" : "（任一符合）" : ""
+      return field.label + rule + "：" + profileValueText(field, condition) + operator
+    })
+    return rows.length ? "专家画像\n\n" + rows.join("\n\n") : ""
+  }
+  function saveProfile(projectId, draft) {
+    const model = normalizeProfile(draft)
+    localStorage.setItem(profileKey(projectId), JSON.stringify({ ...model, updatedAt: new Date().toISOString(), origin: "manual" }))
+    const drafts = { ...store.artifactDrafts }; delete drafts[projectId + ":profile:v2"]
+    set({ artifactDrafts: drafts, artifactRevision: store.artifactRevision + 1 })
+  }
+  function ProfileCriteriaCard({ demandId, embedded = false }) {
+    const s = useStore()
+    const draftKey = demandId + ":profile:v2"
+    let saved, loadError = ""
+    try { saved = loadProfile(demandId) }
+    catch (_) { loadError = "画像存储无法读取，请恢复数据后再编辑；原数据未被覆盖。" }
+    const draft = s.artifactDrafts[draftKey]
+    const model = draft || saved
+    const [active, setActive] = useState(null)
+    const [error, setError] = useState("")
+    const [copying, setCopying] = useState(false)
+    const dirty = !!draft && JSON.stringify(draft) !== JSON.stringify(saved)
+    useEffect(() => {
+      if (!dirty) return
+      const warn = (event) => { event.preventDefault(); event.returnValue = "" }
+      window.addEventListener("beforeunload", warn)
+      return () => window.removeEventListener("beforeunload", warn)
+    }, [dirty])
+    function edit(key) { setActive(key); setError("") }
+    function change(key, patch) {
+      const current = store.artifactDrafts[draftKey] || saved
+      set({ artifactDrafts: { ...store.artifactDrafts, [draftKey]: { ...current,
+        conditions: { ...current.conditions, [key]: { ...current.conditions[key], ...patch } } } } })
+      setError("")
+    }
+    function cancel() {
+      const drafts = { ...store.artifactDrafts }; delete drafts[draftKey]
+      set({ artifactDrafts: drafts }); setActive(null); setError("")
+    }
+    function save() {
+      try { saveProfile(demandId, draft); setActive(null); setError(""); toast("专家画像已保存到本机；匹配规则待后端接入") }
+      catch (err) { setError(err.name === "QuotaExceededError" ? "本机存储空间不足，草稿仍保留。" : err.message || "保存失败，草稿仍保留。") }
+    }
+    async function copy() {
+      setCopying(true)
+      try { await navigator.clipboard.writeText(profileCopy(saved)); toast("专家画像已复制（仅包含非空条件）") }
+      catch (_) { toast("复制失败，请检查浏览器剪贴板权限。") }
+      finally { setCopying(false) }
+    }
+    function fieldRow(field) {
+      const condition = model.conditions[field.key]
+      const filled = profileHasValue(condition)
+      const editing = active === field.key
+      const isText = field.type === "text"
+      const raw = Array.isArray(condition.value) ? condition.value.join("、") : String(condition.value ?? "")
+      return n("div", { className: "eo-criterion" + (isText ? " semantic" : ""), key: field.key },
+        n("div", { className: "eo-criterion-label" }, field.label,
+          !isText && filled ? n("span", { className: "eo-criterion-rule " + condition.requirement }, condition.requirement === "required" ? "必须" : "优先") : null),
+        editing ? n("div", { className: "eo-criterion-editor" },
+          field.type === "education" ? n("select", { className: "eo-field-editor", "aria-label": field.label, value: raw, autoFocus: true,
+            onChange: (event) => change(field.key, { value: event.target.value }) }, n("option", { value: "" }, "不限"), EDUCATION_LEVELS.map((level) => n("option", { key: level, value: level }, level + "及以上"))) :
+          n(isText ? "textarea" : "input", { className: "eo-field-editor", "aria-label": field.label, autoFocus: true,
+            ...(isText ? { rows: field.key === "experience" ? 5 : 3 } : { type: field.type === "month" ? "month" : "text", inputMode: field.type === "number" ? "decimal" : "text" }),
+            placeholder: field.type === "tags" ? "多个值用顿号分隔" : field.type === "number" ? "至少 · " + field.unit : "留空不限定",
+            value: raw, onChange: (event) => change(field.key, { value: event.target.value }),
+            onKeyDown: (event) => { if (event.key === "Escape") setActive(null) } }),
+          !isText ? n("div", { className: "eo-criterion-options" },
+            n("select", { "aria-label": field.label + "约束", value: condition.requirement, onChange: (event) => change(field.key, { requirement: event.target.value }) },
+              n("option", { value: "required" }, "必须满足"), n("option", { value: "preferred" }, "优先考虑")),
+            field.type === "tags" ? n("select", { "aria-label": field.label + "匹配方式", value: condition.operator, onChange: (event) => change(field.key, { operator: event.target.value }) },
+              n("option", { value: "any_of" }, "任一符合"), n("option", { value: "all_of" }, "全部符合")) : null) : null) :
+        n("button", { className: "eo-field-value" + (!filled ? " eo-empty-field" : ""), "aria-label": "修改专家画像 · " + field.label,
+          onClick: () => edit(field.key), title: "点击修改" }, profileValueText(field, condition)),
+        !editing && filled && field.type === "tags" ? n("small", { className: "eo-criterion-hint" }, condition.operator === "all_of" ? "全部符合" : "任一符合") : null)
+    }
+    const fixed = model ? PROFILE_SCHEMA.filter((f) => f.type !== "text" && profileHasValue(model.conditions[f.key])) : []
+    return n("section", { className: "eo-card eo-pad eo-artifact-card eo-profile-criteria", "aria-label": "专家画像" },
+      n("div", { className: "eo-artifact-head" }, embedded ? n("span", { className: "eo-tag" }, "筛选条件") : n("h3", null, "专家画像", n("span", { className: "eo-tag" }, "筛选条件")),
+        n("button", { className: "eo-btn", disabled: !saved || dirty || copying || !profileCopy(saved), onClick: copy, title: dirty ? "保存后再复制" : "复制已填写条件" }, copying ? "复制中…" : "复制画像")),
+      loadError ? n("p", { role: "alert", className: "eo-upload-error" }, loadError) : n(React.Fragment, null,
+        n("div", { className: "eo-profile-section-title" }, "基础条件", n("span", null, fixed.filter((f) => model.conditions[f.key].requirement === "required").length + " 项必须 · " + fixed.filter((f) => model.conditions[f.key].requirement === "preferred").length + " 项优先")),
+        n("p", { className: "eo-profile-help" }, "必须条件先筛选；未填写不限制。"),
+        ["专业与资质", "教育背景", "任职与投入"].map((group) => n("div", { key: group, className: "eo-criteria-group" },
+          n("h4", null, group), n("div", { className: "eo-criteria-grid" }, PROFILE_SCHEMA.filter((f) => f.group === group).map(fieldRow)))),
+        n("p", { className: "eo-profile-policy" }, "信息缺失 → 待核实；明确不符 → 排除。优先条件不淘汰人选。"),
+        n("div", { className: "eo-profile-section-title semantic" }, "经历与能力", n("span", null, "筛选后匹配")),
+        n("p", { className: "eo-profile-help" }, "描述项目所需背景、经历和能力，用于语义匹配。"),
+        PROFILE_SCHEMA.filter((f) => f.type === "text").map(fieldRow),
+        model.legacyOther ? n("details", { className: "eo-profile-legacy" }, n("summary", null, "历史补充条件 · 待归类"), n("p", null, model.legacyOther),
+          n("small", null, "原四字段画像的补充内容已保留，不自动作为筛选条件。")) : null,
+        error ? n("p", { role: "alert", className: "eo-upload-error" }, error) : null,
+        active || draft ? n("div", { className: "eo-artifact-actions" }, n("span", null, dirty ? "有未保存修改" : "填写条件后保存"),
+          n("button", { className: "eo-btn", onClick: cancel }, "取消"), n("button", { className: "eo-btn primary", onClick: save, disabled: !dirty }, "保存")) : null))
+  }
+
+  function RecruitmentFields({ title, badge, labels, values, profile, demandId, embedded = false }) {
+    const s = useStore()
+    const kind = profile ? "profile" : "jd"
+    const draftKey = demandId + ":" + kind
+    const draft = s.artifactDrafts[draftKey]
+    const [activeField, setActiveField] = useState(null)
+    const [error, setError] = useState("")
+    const [copying, setCopying] = useState(false)
+    const dirty = !!draft && labels.some((label) => String(draft[label] ?? "") !== String(values?.[label] ?? ""))
+    useEffect(() => {
+      if (!dirty) return
+      const warn = (event) => { event.preventDefault(); event.returnValue = "" }
+      window.addEventListener("beforeunload", warn)
+      return () => window.removeEventListener("beforeunload", warn)
+    }, [dirty])
+    function edit(label) {
+      if (!draft) set({ artifactDrafts: { ...store.artifactDrafts, [draftKey]: { ...values } } })
+      setActiveField(label); setError("")
+    }
+    function change(label, value) {
+      set({ artifactDrafts: { ...store.artifactDrafts, [draftKey]: { ...(store.artifactDrafts[draftKey] || values), [label]: value } } })
+      setError("")
+    }
+    function cancel() {
+      const drafts = { ...store.artifactDrafts }; delete drafts[draftKey]
+      set({ artifactDrafts: drafts }); setActiveField(null); setError("")
+    }
+    function save() {
+      try { saveArtifact(demandId, kind, labels, draft); setActiveField(null); setError(""); toast(title + "已保存到本机") }
+      catch (err) { setError(err.name === "QuotaExceededError" ? "本机存储空间不足，修改尚未保存。" : err.message || "保存失败，修改仍保留。") }
+    }
+    async function copy() {
+      setCopying(true)
+      try { await navigator.clipboard.writeText(artifactCopyText(title, labels, values)); toast(title + "已复制") }
+      catch (_) { toast("复制失败，请允许浏览器访问剪贴板后重试。") }
+      finally { setCopying(false) }
+    }
+    return n("section", { className: "eo-card eo-pad eo-artifact-card", "aria-label": title },
+      n("div", { className: "eo-artifact-head" },
+        embedded ? n("span", { className: "eo-tag" }, badge) : n("h3", null, title, n("span", { className: "eo-tag" }, badge)),
+        n("button", { className: "eo-btn", disabled: dirty || copying || !artifactCopyText(title, labels, values), title: dirty ? "保存修改后再复制" : "复制非空字段", onClick: copy }, copying ? "复制中…" : profile ? "复制画像" : "复制 JD")),
       n("dl", { className: "eo-fields" + (profile ? " eo-profile-fields" : "") },
         labels.map((label) => {
-          const value = values?.[label]
-          const isEmpty = value == null || (typeof value === "string" && !value.trim())
-          const content = label === "招募人数" && !isEmpty ? value + " 人" : value
-          return n("div", { className: "eo-row", key: label },
+          const value = (draft || values)?.[label]
+          const isEmpty = value == null || !String(value).trim()
+          return n("div", { className: "eo-row eo-editable-row", key: label, onClick: () => { if (activeField !== label) edit(label) } },
             n("dt", { className: "k" }, label),
-            n("dd", { className: isEmpty ? "eo-empty-field" : undefined },
-              isEmpty ? (profile ? "未限定" : "待补充") : content))
-        })))
+            n("dd", null, activeField === label ? n(label === "招募人数" ? "input" : "textarea", {
+              className: "eo-field-editor", "aria-label": title + " · " + label, autoFocus: true,
+              ...(label === "招募人数" ? { type: "text", inputMode: "numeric" } : { rows: label === "从业经验" ? 5 : 3 }),
+              value: String(value ?? ""), onChange: (event) => change(label, event.target.value),
+              onKeyDown: (event) => { if (event.key === "Escape") { event.stopPropagation(); setActiveField(null) } },
+            }) : n("button", { type: "button", className: "eo-field-value" + (isEmpty ? " eo-empty-field" : ""),
+              "aria-label": "修改" + title + " · " + label, onClick: () => edit(label), title: "点击修改" },
+              isEmpty ? (profile ? "未限定" : "待补充") : String(value) + (label === "招募人数" ? " 人" : ""))))
+        })),
+      error ? n("p", { className: "eo-upload-error", role: "alert" }, error) : null,
+      draft ? n("div", { className: "eo-artifact-actions" },
+        n("span", null, dirty ? "有未保存修改" : "点击字段编辑"),
+        n("button", { className: "eo-btn", onClick: cancel }, "取消"),
+        n("button", { className: "eo-btn primary", disabled: !dirty, onClick: save }, "保存")) : null)
   }
 
   function DemandEvidence({ source }) {
@@ -360,7 +1054,7 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
   }
 
   // Session-only originals; no parsing or host upload until the M3 file API exists.
-  function DemandUpload({ demandId }) {
+  function DemandUpload({ demandId, title = "甲方需求文档", showParse = false }) {
     const s = useStore()
     const picker = useRef(null)
     const [error, setError] = useState("")
@@ -379,7 +1073,7 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
         } else if (next.some((item) => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified)) {
           errors.push(file.name + "：已在列表中。")
         } else if (bytes + file.size > 50 * 1024 * 1024 || next.length >= 20) {
-          errors.push(file.name + "：每个需求最多暂存 20 份、合计 50 MB。")
+          errors.push(file.name + "：当前文档分组最多暂存 20 份、合计 50 MB。")
         } else {
           next.push(file)
           bytes += file.size
@@ -388,16 +1082,23 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       set({ documents: { ...store.documents, [demandId]: next } })
       setError(errors.join("\n"))
     }
-    return n("section", { className: "eo-card eo-pad eo-upload", "aria-label": "甲方需求文档" },
+    return n("section", { className: "eo-card eo-pad eo-upload", "aria-label": title },
       n("div", { className: "eo-upload-head" },
         n("div", { className: "eo-upload-info" },
-          n("h3", null, "甲方需求文档"),
+          n("h3", null, title),
           n("span", { className: "eo-upload-note" }, "PDF / Word · 多选"),
           n("span", { className: "eo-tag", title: "文件仅在本次会话暂存，刷新后需重新选择；尚未接入保存与解析，现有示例成果不会随上传改变。" }, "本次暂存 · 未解析")),
-        n("button", { className: "eo-btn primary", onClick: () => picker.current?.click() }, "上传文档"),
+        n("div", { className: "eo-upload-actions" },
+          n("button", { className: "eo-btn primary", onClick: () => picker.current?.click() }, "上传文档"),
+          showParse ? n("button", { className: "eo-btn", disabled: files.length === 0,
+            title: files.length ? "解析当前项目已上传的文档" : "请先上传文档",
+            onClick: () => {
+              if (!(store.documents[demandId] || []).length) return
+              toast("解析服务尚未接入，文档已暂存；现有画像与 JD 不会改变。")
+            } }, "解析文档") : null),
         n("input", { ref: picker, type: "file", hidden: true, multiple: true,
           accept: ".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-          "aria-label": "上传甲方需求文档", onChange: selectFiles })),
+          "aria-label": "上传" + title, onChange: selectFiles })),
       files.length ? n("details", { className: "eo-upload-files" },
         n("summary", null, "已选择 " + files.length + " 份文档 · 查看文件"),
         n("ul", { className: "eo-upload-list" }, files.map((file, i) =>
@@ -412,87 +1113,477 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
   }
 
   function RecruitmentView({ result, demandId }) {
+    const [artifactTab, setArtifactTab] = useState("profile")
+    const tabs = [["profile", "专家画像"], ["jd", "岗位 JD"]]
+    const prefix = "eo-artifact-" + demandId
+    function onTabKey(event, index) {
+      const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 :
+        event.key === "ArrowRight" ? (index + 1) % tabs.length :
+        event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : null
+      if (next === null) return
+      event.preventDefault()
+      setArtifactTab(tabs[next][0])
+      event.currentTarget.parentElement.querySelectorAll('[role="tab"]')[next].focus()
+    }
     return n("div", { className: "eo-recruitment" },
-      n(DemandUpload, { demandId }),
-      result ? n("div", { className: "eo-grid2" },
-        n(RecruitmentFields, { title: "专家画像", badge: "内部版", labels: PROFILE_FIELDS, values: result.profile, profile: true }),
-        n(RecruitmentFields, { title: "岗位 JD", badge: "对外草稿", labels: JD_FIELDS, values: result.jd }))
+      n(DemandUpload, { demandId, showParse: true }),
+      result ? n("section", { className: "eo-card eo-artifact-switcher", "aria-label": "需求与招募成果" },
+        n("div", { className: "eo-artifact-tabs", role: "tablist", "aria-label": "成果类型" },
+          tabs.map(([key, label], index) => n("button", { key, type: "button", role: "tab", className: "eo-artifact-tab",
+            id: prefix + "-tab-" + key, "aria-controls": prefix + "-panel-" + key,
+            "aria-selected": artifactTab === key, tabIndex: artifactTab === key ? 0 : -1,
+            onClick: () => setArtifactTab(key), onKeyDown: (event) => onTabKey(event, index) }, label))),
+        // Keep both editors mounted so switching tabs never discards an in-progress edit.
+        n("div", { className: "eo-artifact-panel", role: "tabpanel", id: prefix + "-panel-profile",
+          "aria-labelledby": prefix + "-tab-profile", hidden: artifactTab !== "profile" },
+          n(ProfileCriteriaCard, { demandId, embedded: true })),
+        n("div", { className: "eo-artifact-panel", role: "tabpanel", id: prefix + "-panel-jd",
+          "aria-labelledby": prefix + "-tab-jd", hidden: artifactTab !== "jd" },
+          n(RecruitmentFields, { title: "岗位 JD", badge: "对外草稿", labels: JD_FIELDS, values: result.jd, demandId, embedded: true })))
         : n("section", { className: "eo-card eo-pad" },
           n("h3", null, "暂无招募成果"),
           n("div", null, "当前需求还没有解析结果、专家画像或岗位 JD。")),
       result ? n(DemandEvidence, { source: result.source }) : null)
   }
 
-  function BoardView({ list, total }) {
+  // Receipt state is project-specific; AI classification remains separate from human review.
+  function loadCandidateReceipts() {
+    try {
+      const value = JSON.parse(localStorage.getItem("dsh-expert-ops:candidate-receipts:v1") || "{}")
+      return value && typeof value === "object" && !Array.isArray(value) ? value : {}
+    } catch (_) { return {} }
+  }
+  function candidateRevision(expert) { return expert.resultRevision || 1 }
+  function candidateReceipt(state, projectId, expert) {
+    const receipt = state.candidateReceipts[projectId]?.[expert.id] || {}
+    const current = candidateRevision(expert)
+    return { unread: receipt.seenRevision !== current,
+      review: receipt.reviewRevision === current && ["passed", "excluded"].includes(receipt.review) ? receipt.review : "pending" }
+  }
+  function writeCandidateReceipts(projectId, ids, patch) {
+    const project = { ...store.candidateReceipts[projectId] }
+    for (const expert of store.experts) {
+      if (!ids.includes(expert.id) || !expert.candidateProjectIds.includes(projectId)) continue
+      project[expert.id] = { ...project[expert.id], ...patch(candidateRevision(expert)) }
+    }
+    const receipts = { ...store.candidateReceipts, [projectId]: project }
+    try { localStorage.setItem("dsh-expert-ops:candidate-receipts:v1", JSON.stringify(receipts)) }
+    catch (_) { toast("保存失败，请重试；当前审核和提醒状态未改变。"); return false }
+    set({ candidateReceipts: receipts }); return true
+  }
+  function openCandidate(projectId, expert) {
+    writeCandidateReceipts(projectId, [expert.id], (revision) => ({ seenRevision: revision }))
+    set({ drawer: { projectId, id: expert.id } })
+  }
+  function reviewCandidates(projectId, ids, review) {
+    if (!["passed", "excluded", "pending"].includes(review)) return false
+    return writeCandidateReceipts(projectId, ids, (revision) => ({ review, reviewRevision: revision }))
+  }
+  function poolCandidates(state, projectId, experts, filters) {
+    const query = (filters.query || "").trim().toLowerCase()
+    return experts.filter((e) => {
+      const receipt = candidateReceipt(state, projectId, e)
+      return e.candidateProjectIds.includes(projectId) &&
+        (!filters.pendingOnly || receipt.review === "pending") &&
+        (filters.view === "all" || filters.view === "ai" || receipt.review === filters.view) &&
+        (filters.ai === "all" || e.bucket === filters.ai) &&
+        (filters.source === "all" || e.src === filters.source) &&
+        (!query || [e.name, e.id, e.city, e.why, e.gap].join(" ").toLowerCase().includes(query))
+    }).sort((a, b) => Number(candidateReceipt(state, projectId, a).review !== "pending") - Number(candidateReceipt(state, projectId, b).review !== "pending") || Number(candidateReceipt(state, projectId, b).unread) - Number(candidateReceipt(state, projectId, a).unread) || b.score - a.score)
+  }
+  function pendingCandidates(state, projectId, experts, bucket) {
+    return poolCandidates(state, projectId, experts, { view: "ai", ai: bucket, source: "all", pendingOnly: true })
+  }
+  function BoardView({ projectId, experts }) {
     const s = useStore()
-    const cols = [["A", "推荐", "a"], ["B", "待确认", "b"], ["C", "排除", "c"]]
-    const srcCls = { 原识: "", 飞书: "fs", 手填: "man" }
-    return n("div", null,
-      n("div", { className: "eo-filters" },
-        ["原识", "飞书表单", "手填"].map((x, i) => n("span", { key: x, className: "eo-chip on" }, x)),
-        n("span", { className: "eo-chip" }, "城市 · 不限"),
-        n("span", { className: "eo-chip" }, "报价 · 不限"),
-        n("span", { className: "eo-chip" }, "只看有缺口"),
-        n("span", { style: { marginLeft: "auto", color: "#9ca3af", fontSize: 11.2 } }, total + " 位候选 · mock 数据")),
-      n("div", { className: "eo-board" },
-        cols.map(([bucket, label, cls]) =>
-          n("div", { className: "eo-col " + cls, key: bucket },
-            n("div", { className: "eo-colhead" }, n("span", { className: "eo-coldot" }), label,
-              n("span", { className: "eo-cnt" }, list(bucket).length)),
-            list(bucket).map((e) => n("div", {
-              key: e.name,
-              className: "eo-expert" + (bucket === "C" ? " excluded" : ""),
-              onClick: () => set({ drawer: e.name }),
-            },
-              n("div", { className: "eo-exhead" }, n("span", { className: "eo-exname" }, e.name), n("span", { className: "eo-score" }, e.score)),
-              n("div", { className: "eo-exmeta" },
-                n("span", { className: "eo-src " + srcCls[e.src] }, e.src),
-                n("span", null, e.city + " · " + e.years + " 年 · " + e.rate + " 元/小时")),
-              n("div", { className: "eo-why" }, e.why),
-              e.gap ? n("div", { className: "eo-why gap" }, e.gap) : null))))))
+    const [view, setView] = useState("all")
+    const [ai, setAI] = useState("all")
+    const [source, setSource] = useState("all")
+    const [query, setQuery] = useState("")
+    const [selected, setSelected] = useState([])
+    const [pendingOnly, setPendingOnly] = useState(false)
+    const selectAllRef = useRef(null)
+    const groups = [["A", "推荐"], ["B", "待确认"], ["C", "建议排除"]]
+    const labels = { A: "推荐入项", B: "待确认", C: "推荐排除" }
+    const sourceLabels = { 原识: "原识平台", 飞书: "飞书表单", 手填: "手动上传" }
+    const rows = poolCandidates(s, projectId, experts, { view, ai, source, query, pendingOnly })
+    const selectedIds = selected.filter((id) => rows.some((e) => e.id === id))
+    const allSelected = rows.length > 0 && selectedIds.length === rows.length
+    useEffect(() => { if (selectAllRef.current) selectAllRef.current.indeterminate = selectedIds.length > 0 && !allSelected }, [selectedIds.length, allSelected])
+    function filter(update) { update(); setSelected([]) }
+    function review(ids, value) {
+      if (reviewCandidates(projectId, ids, value)) { setSelected([]); toast(value === "passed" ? "已人工确认通过" : value === "excluded" ? "已人工确认排除" : "已恢复待人工确认") }
+    }
+    return n("div", { className: "eo-candidate-workspace" },
+      n("div", { className: "eo-stat-grid", "aria-label": "按 AI 判断分类的待人工审核数量" }, groups.map(([bucket, label]) => {
+        const members = pendingCandidates(s, projectId, experts, bucket)
+        const unread = members.filter((e) => candidateReceipt(s, projectId, e).unread).length
+        return n("button", { key: bucket, type: "button", className: "eo-stat " + bucket, "aria-pressed": view === "ai" && ai === bucket && pendingOnly,
+          "aria-label": "AI判断：" + label + "，待人工审核 " + members.length + " 人" + (unread ? "，" + unread + " 人有新动态" : ""),
+          onClick: () => filter(() => { setView("ai"); setAI(bucket); setPendingOnly(true); setSource("all"); setQuery("") }) },
+          n("span", { className: "eo-stat-label" }, "AI判断：" + label), n("span", { className: "eo-stat-number" }, members.length, n("small", null, "人")),
+          n("span", { className: "eo-stat-caption" }, "待人工审核数量"),
+          unread ? n("span", { className: "eo-stat-new", title: "待人工审核中新增或分析更新后尚未查看的专家；查看详情后清除" }, "+" + unread) : null)
+      })),
+      n("div", { className: "eo-pool-tabs", "aria-label": "候选人分类" },
+        [["all", "全部"], ["ai", "AI 推荐"], ["passed", "已通过"], ["excluded", "已排除"]].map(([key, label]) =>
+          n("button", { key, "aria-pressed": view === key, onClick: () => filter(() => { setView(key); setAI("all"); setPendingOnly(false) }) }, label,
+            n("small", null, key === "all" || key === "ai" ? experts.length : experts.filter((e) => candidateReceipt(s, projectId, e).review === key).length)))),
+      n("div", { className: "eo-pool-filters" },
+        n("select", { "aria-label": "AI 推荐状态", value: ai, onChange: (event) => filter(() => setAI(event.target.value)) }, n("option", { value: "all" }, "全部 AI 状态"), groups.map(([key]) => n("option", { key, value: key }, labels[key]))),
+        n("select", { "aria-label": "专家来源", value: source, onChange: (event) => filter(() => setSource(event.target.value)) }, n("option", { value: "all" }, "来源：全部"), Object.entries(sourceLabels).map(([key, label]) => n("option", { key, value: key }, label))),
+        n("input", { type: "search", "aria-label": "搜索候选人", placeholder: "姓名、ID、城市或匹配理由", value: query, onChange: (event) => filter(() => setQuery(event.target.value)) })),
+      n("div", { className: "eo-pool-bulk" },
+        n("div", { className: "eo-pool-checks" },
+          ["all", "ai"].includes(view) ? n("label", { className: "eo-pool-pending" },
+            n("input", { type: "checkbox", checked: pendingOnly, onChange: (event) => filter(() => setPendingOnly(event.target.checked)) }), "仅待人工审核") : null,
+          n("label", null, n("input", { ref: selectAllRef, type: "checkbox", checked: allSelected, disabled: !rows.length, onChange: (event) => setSelected(event.target.checked ? rows.map((e) => e.id) : []) }), "选择当前列表")),
+        n("span", { className: "eo-pool-selected" }, "已选 " + selectedIds.length + " 人"),
+        n("div", { className: "eo-pool-bulk-actions" },
+          n("button", { className: "eo-btn", disabled: !selectedIds.length, onClick: () => review(selectedIds, "passed") }, "批量通过"),
+          n("button", { className: "eo-btn", disabled: !selectedIds.length, onClick: () => review(selectedIds, "excluded") }, "批量排除"))),
+      n("div", { className: "eo-pool-list" }, rows.length ? rows.map((e) => {
+        const receipt = candidateReceipt(s, projectId, e)
+        const muted = ["all", "ai"].includes(view) && receipt.review !== "pending"
+        return n("article", { key: e.id, className: "eo-pool-row" + (muted ? " reviewed" : ""), "aria-label": e.name + "候选人" },
+          n("input", { type: "checkbox", "aria-label": "选择 " + e.name, checked: selectedIds.includes(e.id), onChange: (event) => setSelected(event.target.checked ? [...selectedIds, e.id] : selectedIds.filter((id) => id !== e.id)) }),
+          n("div", { className: "eo-pool-info" },
+            n("div", { className: "eo-pool-name" }, receipt.unread ? n("span", { className: "eo-pool-new", title: "尚未查看的新动态" }, "新") : null, n("strong", null, e.name), n("small", null, e.id.replace("demo-expert-", "E")),
+              n("span", { className: "eo-ai-badge " + e.bucket }, "AI · " + labels[e.bucket]), n("span", { className: "eo-pool-source " + (e.src === "飞书" ? "feishu" : e.src === "手填" ? "manual" : "origin") }, sourceLabels[e.src])),
+            n("p", null, e.city + " · " + e.years + " 年经验 · " + e.rate + " 元/小时 · 匹配分 " + e.score),
+            n("p", { className: "eo-pool-reason" }, e.why)),
+          n("div", { className: "eo-pool-side" }, n("span", { className: "eo-pool-status" }, receipt.review === "passed" ? "人工已通过" : receipt.review === "excluded" ? "人工已排除" : "待人工确认"),
+            n("button", { className: "eo-pool-detail", onClick: () => openCandidate(projectId, e) }, "查看 AI 理由 →"),
+            n("div", { className: "eo-pool-row-actions" },
+              receipt.review !== "passed" ? n("button", { className: "eo-btn primary", onClick: () => review([e.id], "passed") }, "审核通过") : null,
+              receipt.review !== "excluded" ? n("button", { className: "eo-btn", onClick: () => review([e.id], "excluded") }, "排除") : null,
+              receipt.review !== "pending" ? n("button", { className: "eo-btn", onClick: () => review([e.id], "pending") }, "撤销结论") : null)))
+      }) : n("div", { className: "eo-pool-empty" }, experts.length ? "没有符合筛选条件的专家" : "当前项目暂无候选人")),
+      n("p", { className: "eo-pool-note" }, "示例数据 · +N 为尚未查看的新动态人数；查看详情后清除。抓取与上传解析接口待接入。"))
   }
 
-  function AgentPanel() {
-    return n("aside", { className: "eo-agent" },
-      n("div", { className: "eo-ahead" }, "运营 Agent", n("span", { className: "st" }, n("i"), "在线")),
-      n("div", { className: "eo-thread" },
-        n("div", { className: "eo-msg you" }, n("div", { className: "eo-who" }, "你"),
-          n("div", { className: "eo-bubble" }, "把原识和飞书里的候选人按这份画像重排，粤语/四川话优先，报价别超 180。")),
-        n("div", { className: "eo-msg" }, n("div", { className: "eo-who" }, "Agent"),
-          n("div", { className: "eo-run" },
-            n("div", { className: "rt" }, n("span", { className: "eo-ok" }, "✓"), n("code", null, "expert_match"),
-              n("span", { style: { marginLeft: "auto", color: "#9ca3af", fontSize: 10.6 } }, "3.2s")),
-            n("div", { className: "rb" }, "扫描 ", n("b", null, "43"), " 位候选（原识 27 / 飞书 9 / 手填 7）→ ",
-              n("b", null, "12 推荐"), " · ", n("b", null, "8 待确认"), " · ", n("b", null, "23 排除")))),
-        n("div", { className: "eo-msg" }, n("div", { className: "eo-who" }, "Agent"),
-          n("div", { className: "eo-bubble" }, "已重排。3 位因报价超上限被移到「排除」，2 位原「待确认」补上档期信息后升到「推荐」。\n建议先看 张*（92）和陈*（88），两人技能全命中且有字节项目经验。")),
-        n("div", { className: "eo-msg" }, n("div", { className: "eo-who" }, "Agent"),
-          n("div", { className: "eo-bubble" }, "需要我把这 12 人导出成飞书表格，或者给「待确认」的 8 人各生成一条追问话术吗？"))),
-      n("div", { className: "eo-quick" },
-        ["重排匹配", "生成追问话术", "导出推荐名单", "补全缺失字段"].map((x) =>
-          n("button", { key: x, onClick: () => toast("已执行「" + x + "」（mock）") }, x))),
-      n("div", { className: "eo-composer" },
-        n("div", { className: "eo-box" },
-          n("textarea", { placeholder: "让 Agent 做点什么，例如：把待确认里报价超标的挑出来" }),
-          n("button", { className: "eo-send", onClick: () => toast("Agent 收到（mock，M3 接工具）") }, "↑"))))
+  // Knowledge sources reuse project originals. Built-in excerpts are explicitly marked as demo content.
+  function knowledgeDocuments(state) {
+    const docs = []
+    for (const project of state.projects.filter((p) => !p.deletedAt)) {
+      const result = RECRUITMENT_RESULTS[project.id]
+      if (result?.source) docs.push({ id: "example:" + project.id, name: project.title + "需求原文（示例）",
+        project: project.title, projectId: project.id, sample: true,
+        paragraphs: result.source.map((paragraph) => paragraph.map((part) => Array.isArray(part) ? part[0] : part).join("")) })
+    }
+    for (const [projectId, files] of Object.entries(state.documents)) {
+      const project = state.projects.find((p) => p.id === projectId && !p.deletedAt)
+      if (projectId !== "__knowledge" && !project) continue
+      for (const file of files) docs.push({ id: JSON.stringify([projectId, file.name, file.size, file.lastModified]),
+        name: file.name, project: project?.title || "通用知识库", projectId, file, paragraphs: [] })
+    }
+    return docs
+  }
+
+  function knowledgeAnswer(question, docs, selectedId) {
+    const scope = selectedId ? docs.filter((d) => d.id === selectedId) : docs
+    if (!scope.length) return { text: "当前没有可查询的文档，请先上传或重新选择文档。", citations: [] }
+    const readable = scope.filter((d) => d.paragraphs.length)
+    if (!readable.length) return { text: "已收到问题，但所选文档尚未解析。当前仅暂存原文件，无法读取其中的内容或据此作答；需接入文档解析与模型服务后启用。", citations: [] }
+    const summary = /总结|概述|主要内容|摘要/.test(question)
+    const terms = [...new Set((question.toLowerCase().match(/[a-z0-9]+|[\u4e00-\u9fff]{2,}/g) || []).flatMap((term) =>
+      /^[\u4e00-\u9fff]+$/.test(term) ? Array.from({ length: term.length - 1 }, (_, i) => term.slice(i, i + 2)) : [term]))]
+      .filter((term) => !["什么", "哪些", "这个", "这份", "文档", "请问", "多少", "一下", "帮我", "要求"].includes(term))
+    const hits = readable.flatMap((doc) => doc.paragraphs.map((quote, index) => ({ docId: doc.id, name: doc.name, quote, paragraph: index + 1,
+      score: terms.reduce((score, term) => score + Number(quote.toLowerCase().includes(term)), 0) })))
+      .filter((hit) => summary || hit.score > 0).sort((a, b) => b.score - a.score).slice(0, 4)
+    if (!hits.length) return { text: "未在可读取的示例原文中找到相关内容。当前为关键词检索演示，不会补写没有来源的结论；上传的 PDF / Word 仍待解析。", citations: [] }
+    return { text: "以下为示例原文的相关片段（本地检索演示，非模型生成答案）。" +
+      (scope.some((d) => !d.paragraphs.length) ? " 尚未解析的上传文件未参与检索。" : ""), citations: hits }
+  }
+
+  function KnowledgeView() {
+    const s = useStore()
+    const [search, setSearch] = useState("")
+    const docs = knowledgeDocuments(s)
+    const selected = docs.find((d) => d.id === s.knowledgeSelected)
+    const filtered = docs.filter((d) => (d.name + " " + d.project).toLowerCase().includes(search.trim().toLowerCase()))
+    return n("div", { className: "eo-knowledge" },
+      n(DemandUpload, { demandId: "__knowledge", title: "知识库文档" }),
+      n("section", { className: "eo-card eo-pad" },
+        n("div", { className: "eo-kb-toolbar" },
+          n("h3", null, "全部文档", n("span", { className: "eo-tag" }, docs.length + " 份")),
+          n("input", { type: "search", value: search, placeholder: "搜索文档或项目", "aria-label": "搜索知识库文档",
+            onChange: (event) => setSearch(event.target.value) })),
+        n("div", { className: "eo-upload-note" }, "汇总各项目文档与通用资料；选择文档后，可在右侧定向提问。"),
+        n("div", { className: "eo-kb-docs" }, filtered.map((doc) =>
+          n("button", { key: doc.id, className: "eo-kb-doc" + (doc.id === selected?.id ? " on" : ""),
+            "aria-pressed": doc.id === selected?.id, onClick: () => set({ knowledgeSelected: doc.id }) },
+            n("span", { className: "eo-kb-file-icon", "aria-hidden": true }, doc.sample ? "TXT" : doc.name.split('.').pop().toUpperCase()),
+            n("span", { className: "eo-kb-file-name" }, n("b", null, doc.name), n("small", null, doc.project)),
+            n("span", { className: "eo-tag" + (doc.sample ? "" : " warn") }, doc.sample ? "示例原文" : "待解析")))),
+        !filtered.length ? n("p", { className: "eo-list-empty" }, search ? "没有符合搜索条件的文档。" : "暂无文档，上传 PDF 或 Word 开始整理知识库。") : null),
+      selected ? n("section", { className: "eo-card eo-pad eo-kb-preview" },
+        n("div", { className: "eo-kb-toolbar" }, n("h3", null, selected.name),
+          n("button", { className: "eo-btn", onClick: () => set({ knowledgeSelected: null }) }, "返回全部范围")),
+        selected.sample ? n("div", { className: "eo-kb-quotes" }, selected.paragraphs.map((text, i) =>
+          n("p", { key: i }, n("small", null, "第 " + (i + 1) + " 段"), text))) :
+          n("p", { className: "eo-upload-note" }, "原文件已在本次会话暂存（" + Math.max(1, Math.round(selected.file.size / 1024)) + " KB）。尚未解析正文，暂不能用于知识库问答；刷新后需重新选择文件。")) : null)
+  }
+
+  function KnowledgeAgent() {
+    const s = useStore()
+    const thread = useRef(null)
+    const docs = knowledgeDocuments(s)
+    const selected = docs.find((d) => d.id === s.knowledgeSelected)
+    useEffect(() => { if (thread.current) thread.current.scrollTop = thread.current.scrollHeight }, [s.knowledgeMessages])
+    function ask(value) {
+      const question = value.trim()
+      if (!question) return
+      const answer = knowledgeAnswer(question, docs, selected?.id)
+      set({ knowledgeMessages: [...store.knowledgeMessages,
+        { role: "user", text: question, scope: selected?.name || "全部知识库" },
+        { role: "assistant", ...answer }].slice(-40), knowledgeDraft: "" })
+    }
+    return n("aside", { className: "eo-agent", "aria-label": "知识库问答" },
+      n("div", { className: "eo-ahead" }, "知识库问答", n("span", { className: "eo-tag" }, "演示")),
+      n("div", { className: "eo-kb-scope" },
+        n("label", null, "问答范围", n("select", { value: selected?.id || "", onChange: (event) => set({ knowledgeSelected: event.target.value || null }) },
+          n("option", { value: "" }, "全部知识库"), docs.map((doc) => n("option", { value: doc.id, key: doc.id }, doc.name))))),
+      n("div", { className: "eo-thread", ref: thread, role: "log", "aria-label": "知识库对话" },
+        !s.knowledgeMessages.length ? n("div", { className: "eo-kb-welcome" },
+          n("h3", null, "从资料中查找答案"),
+          n("p", null, "选择左侧文档，再询问需求、预算或人员条件。回答中的来源可点击，左侧会打开对应文档。"),
+          n("small", null, "当前仅检索示例原文；上传文件待解析，未接入真实模型。")) : null,
+        s.knowledgeMessages.map((message, i) => n("div", { className: "eo-msg" + (message.role === "user" ? " you" : ""), key: i },
+          n("div", { className: "eo-who" }, message.role === "user" ? "你 · " + message.scope : "知识库 Agent"),
+          n("div", { className: "eo-bubble" }, message.text,
+            message.citations?.map((cite) => n("div", { className: "eo-kb-citation", key: cite.docId + cite.paragraph },
+              n("blockquote", null, cite.quote),
+              n("button", { className: "eo-kb-source", disabled: !docs.some((d) => d.id === cite.docId),
+                onClick: () => set({ knowledgeSelected: cite.docId }) }, cite.name + " · 第 " + cite.paragraph + " 段 →"))))))),
+      n("div", { className: "eo-quick" }, ["招募人员需要哪些经验？", "报价是多少？", "总结需求文档"].map((question) =>
+        n("button", { key: question, onClick: () => ask(question) }, question))),
+      n("form", { className: "eo-composer", onSubmit: (event) => { event.preventDefault(); ask(s.knowledgeDraft) } },
+        n("div", { className: "eo-box" }, n("textarea", { value: s.knowledgeDraft, maxLength: 2000, "aria-label": "知识库问题", placeholder: "向知识库提问…",
+          onChange: (event) => set({ knowledgeDraft: event.target.value }),
+          onKeyDown: (event) => { if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) { event.preventDefault(); ask(s.knowledgeDraft) } } }),
+          n("button", { className: "eo-send", type: "submit", disabled: !s.knowledgeDraft.trim(), "aria-label": "发送知识库问题" }, "↑"))))
+  }
+
+  const LIBRARY_SOURCES = { 原识: "原识平台", 飞书: "飞书表单", 手填: "手动录入" }
+  const LIBRARY_STATUSES = { A: "推荐", B: "待确认", C: "排除" }
+  // Library membership depends on ever entering a project pool, independently of its current recommendation.
+  function libraryExperts(state) {
+    const unique = new Map()
+    for (const expert of state.experts) {
+      if (!expert.id || !expert.candidateProjectIds?.length) continue
+      const prior = unique.get(expert.id)
+      unique.set(expert.id, { ...expert, candidateProjectIds: [...new Set([...(prior?.candidateProjectIds || []), ...expert.candidateProjectIds])] })
+    }
+    return [...unique.values()]
+  }
+  function filteredLibrary(state) {
+    const query = state.libraryQuery.trim().toLowerCase()
+    return libraryExperts(state).filter((e) => {
+      const projects = e.candidateProjectIds.map((id) => state.projects.find((p) => p.id === id)?.title || id).join(" ")
+      const haystack = [e.name, e.id, e.city, LIBRARY_SOURCES[e.src] || e.src, projects].join(" ").toLowerCase()
+      return (!query || haystack.includes(query)) &&
+        (state.librarySource === "all" || e.src === state.librarySource) &&
+        (state.libraryStatus === "all" || e.bucket === state.libraryStatus)
+    })
+  }
+  function openExpertProject(projectId) {
+    const project = store.projects.find((p) => p.id === projectId && !p.deletedAt)
+    if (!project) return
+    set({ nav: "project", demand: project.id, expandedDemand: project.id, tab: "p3", showEnded: project.ended, drawer: null })
+  }
+  function ExpertLibraryView() {
+    const s = useStore()
+    const all = libraryExperts(s)
+    const experts = filteredLibrary(s)
+    return n("div", { className: "eo-library" },
+      n("div", { className: "eo-library-toolbar" },
+        n("div", null, n("h3", null, "项目专家档案", n("span", { className: "eo-badge" }, all.length + " 人")),
+          n("p", null, "汇总曾进入项目候选池的专家，包含待确认及排除人员；同一专家合并展示。")),
+        n("span", { className: "eo-tag" }, "示例数据")),
+      n("div", { className: "eo-library-filters" },
+        n("input", { type: "search", "aria-label": "搜索专家库", placeholder: "姓名、ID、城市或关联项目", value: s.libraryQuery,
+          onChange: (event) => set({ libraryQuery: event.target.value }) }),
+        n("select", { "aria-label": "专家来源", value: s.librarySource, onChange: (event) => set({ librarySource: event.target.value }) },
+          n("option", { value: "all" }, "全部来源"), Object.entries(LIBRARY_SOURCES).map(([value, label]) => n("option", { key: value, value }, label))),
+        n("select", { "aria-label": "候选状态", value: s.libraryStatus, onChange: (event) => set({ libraryStatus: event.target.value }) },
+          n("option", { value: "all" }, "全部候选状态"), Object.entries(LIBRARY_STATUSES).map(([value, label]) => n("option", { key: value, value }, label)))),
+      n("div", { className: "eo-library-count", role: "status" }, "显示 " + experts.length + " / " + all.length + " 位专家"),
+      n("div", { className: "eo-library-grid" }, experts.map((e) =>
+        n("button", { key: e.id, className: "eo-card eo-library-card" + (s.librarySelected === e.id ? " on" : ""),
+          "aria-label": "查看专家 " + e.name, "aria-pressed": s.librarySelected === e.id,
+          onClick: () => set({ librarySelected: e.id }) },
+          n("div", { className: "eo-library-card-head" }, n("span", { className: "eo-avatar" }, e.name[0]),
+            n("b", null, e.name), n("span", { className: "eo-tag" }, LIBRARY_SOURCES[e.src] || e.src)),
+          n("p", { className: "eo-library-basics" }, e.city + " · " + e.years + " 年经验 · " + e.rate + " 元/小时"),
+          n("div", { className: "eo-library-projects" }, e.candidateProjectIds.map((id) => {
+            const project = s.projects.find((p) => p.id === id)
+            return n("span", { key: id }, project?.title || "历史项目", project?.deletedAt ? "（已删除）" : project?.ended ? "（已结束）" : "")
+          })),
+          n("div", { className: "eo-library-card-foot" },
+            n("span", { className: "eo-library-state " + e.bucket }, LIBRARY_STATUSES[e.bucket] || "待确认"),
+            n("span", null, "关联 " + e.candidateProjectIds.length + " 个项目 · 查看档案 →"))))),
+      !experts.length ? n("div", { className: "eo-card eo-pad eo-library-empty" },
+        n("h3", null, all.length ? "没有符合条件的专家" : "暂无项目专家"),
+        n("p", null, all.length ? "调整搜索或筛选条件后重试。" : "专家进入项目候选池后，会自动汇总到这里。"),
+        all.length ? n("button", { className: "eo-btn", onClick: () => set({ libraryQuery: "", librarySource: "all", libraryStatus: "all" }) }, "清除筛选") : null) : null)
+  }
+  function ExpertLibraryPanel() {
+    const s = useStore()
+    const all = libraryExperts(s)
+    const expert = all.find((e) => e.id === s.librarySelected)
+    return n("aside", { className: "eo-agent", "aria-label": "专家库档案" },
+      n("div", { className: "eo-ahead" }, "专家档案", n("span", { className: "eo-tag" }, "示例")),
+      n("div", { className: "eo-thread" }, expert ? n("div", { className: "eo-library-detail" },
+        n("div", { className: "eo-kb-toolbar" }, n("h3", null, expert.name),
+          n("button", { className: "eo-btn", onClick: () => set({ librarySelected: null }) }, "关闭档案")),
+        n("small", null, expert.id),
+        n("dl", { className: "eo-fields" }, [["来源", LIBRARY_SOURCES[expert.src] || expert.src], ["城市", expert.city], ["工作年限", expert.years + " 年"], ["参考报价", expert.rate + " 元/小时"], ["候选状态", LIBRARY_STATUSES[expert.bucket]]].map(([label, value]) =>
+          n("div", { className: "eo-row", key: label }, n("dt", { className: "k" }, label), n("dd", null, value)))),
+        n("h3", null, "关联项目"),
+        expert.candidateProjectIds.map((id) => {
+          const project = s.projects.find((p) => p.id === id)
+          return n("div", { className: "eo-card eo-pad eo-library-history", key: id },
+            n("b", null, project?.title || "历史项目"),
+            n("p", null, project?.deletedAt ? "项目已删除，保留专家历史关联。" : project?.ended ? "项目已结束，专家仍保留在库。" : "项目进行中"),
+            project && !project.deletedAt ? n("button", { className: "eo-btn", onClick: () => openExpertProject(id) }, "打开项目候选池 →") : null)
+        })) : n("div", { className: "eo-kb-welcome" },
+        n("h3", null, "查看跨项目专家档案"), n("p", null, "点击左侧专家卡片，查看基础资料与关联项目。"),
+        n("p", null, "当前汇总 " + all.length + " 位专家。项目结束或专家被排除后，历史档案仍保留。"),
+        n("small", null, "当前为示例候选池数据；真实跨项目履历接口待接入。"))))
+  }
+
+  function openProjectSpace(projectId, tab) {
+    if (!["home", "recruitment", "p3"].includes(tab) || !store.projects.some((p) => p.id === projectId && !p.deletedAt)) return
+    set({ nav: "project", demand: projectId, expandedDemand: projectId, tab, drawer: null })
+  }
+
+  // Navigation only: no business task execution or model-response parsing.
+  function projectTaskDestination(text) {
+    if (typeof text !== "string") return null
+    if (/(怎么|如何|是什么|有什么区别|能不能|能否)/.test(text)) return null
+    if (/(不要|不用|别|暂不)[^，。；\n]{0,6}(生成|解析|匹配|筛选|打开|进入|修改|查看)[^，。；\n]{0,8}(JD|画像|需求|专家|候选|看板)/.test(text)) return null
+    const recruitment = /(打开|进入|切换到).{0,8}需求与招募成果|(?:生成|解析|修改|编辑|查看|核对|上传).{0,10}(?:JD|岗位说明|专家画像|需求文档|甲方需求)/i.test(text)
+    const matching = /(打开|进入|查看|切换到).{0,8}(匹配看板|候选池|候选人)|(?:匹配|筛选|查找|审核).{0,8}(?:专家|候选人)/.test(text)
+    return recruitment === matching ? null : recruitment ? "recruitment" : "p3"
+  }
+
+  function subscribeProjectNavigation(eventSource, projectId) {
+    if (!eventSource?.subscribe || !eventSource?.getSnapshot) return () => {}
+    let latestSeq = -1
+    const remember = (entries) => {
+      for (const entry of entries || []) if (Number.isSafeInteger(entry.event?.seq)) latestSeq = Math.max(latestSeq, entry.event.seq)
+    }
+    remember(eventSource.getSnapshot().entries)
+    return eventSource.subscribe(() => {
+      const change = eventSource.getSnapshot().change
+      if (!change) return
+      if (change.kind !== "append") { remember(change.entries); return }
+      for (const entry of change.entries || []) {
+        const event = entry.event
+        if (!Number.isSafeInteger(event?.seq) || event.seq <= latestSeq) continue
+        latestSeq = event.seq
+        if (event.type !== "user/message" || event.data?.source?.kind !== "user") continue
+        if (store.nav !== "project" || store.demand !== projectId || store.tab !== "home") continue
+        const content = event.data.content
+        if (!Array.isArray(content)) continue
+        const text = content.filter((part) => part.type === "text").map((part) => part.text).join("\n")
+        const destination = projectTaskDestination(text)
+        if (destination) openProjectSpace(projectId, destination)
+      }
+    })
+  }
+
+  function ProjectHomeDock() {
+    const project = React.useContext(ProjectHomeContext)
+    return project ? n("div", { className: "eo-home-dock" }, n(ProjectHomeCards, { project })) : null
+  }
+
+  function ProjectHomeCards({ project }) {
+    const state = useStore()
+    if (!project) return null
+    return n("nav", { className: "eo-home-cards", "aria-label": "项目工作空间" },
+      [["recruitment", "▤", "需求与招募成果", "上传甲方需求，生成与核对专家画像、岗位 JD"],
+       ["p3", "◎", "匹配看板", "按画像匹配专家，查看 AI 建议并人工审核"]].map(([tab, icon, title, description]) =>
+        n("button", { key: tab, className: "eo-home-card", title: description, "aria-pressed": state.demand === project.id && state.tab === tab, onClick: () => openProjectSpace(project.id, tab) },
+          n("span", { className: "eo-home-card-icon", "aria-hidden": true }, icon),
+          n("span", null, n("strong", null, title), n("small", null, description)),
+          n("span", { className: "eo-home-card-arrow", "aria-hidden": true }, "→"))))
+  }
+
+  function FixedProjectChatView(props) {
+    const home = React.useContext(ProjectHomeContext)
+    return n(React.Fragment, null,
+      home?.chatBlank ? n("div", { className: "eo-home-welcome" },
+        n("h2", null, "今天想推进这个项目的哪项工作？"),
+        n("p", null, "直接交给 Agent，或选择下方工作空间")) : null,
+      props.renderSlot("conversation.session", { view: "chat" }))
+  }
+
+  // Same embedded Conversation factory used by DSH's own sidebar chat.
+  function ProjectConversation({ useSession, renderFactorySlot }) {
+    const session = useSession((value) => value)
+    if (session.openState === "error") return n("p", { className: "eo-chat-state", role: "alert" }, "DSH 会话加载失败，请重试或检查原生会话。")
+    return renderFactorySlot("conversation.content", {
+      variant: "embedded", phase: session.openState === "loading" ? "settling" : "active", hero: false,
+    }, { slots: { views: FixedProjectChatView } })
+  }
+
+  function isProjectChatEmpty(snapshot) {
+    return snapshot.blank === true && !snapshot.promptAttempted && !snapshot.awaitingFirstTurn && !snapshot.running && !(snapshot.pendingSubmissions?.length)
+  }
+
+  function AgentPanel({ project, home, sessions, SessionProvider, renderSlot }) {
+    const [reference, setReference] = useState(null)
+    const [blank, setBlank] = useState(false)
+    const [error, setError] = useState("")
+    const [attempt, setAttempt] = useState(0)
+    useEffect(() => {
+      if (!project) return
+      let disposed = false, held, unsubscribeNavigation, unsubscribeSession
+      setReference(null); setError(""); setBlank(false)
+      ensureProjectSession(sessions, project).then(async (id) => {
+        if (disposed) return
+        held = sessions.retain(id, { source: "expertOpsPanel" })
+        const binding = await held.ready
+        if (disposed) return
+        if (binding.session.getSnapshot().openState === "error") throw new Error("DSH 未能打开该项目会话，请检查连接后重试；不会自动创建替代会话。")
+        unsubscribeNavigation = subscribeProjectNavigation(binding.session.eventSource, project.id)
+        const updateBlank = () => { if (!disposed) setBlank(isProjectChatEmpty(binding.session.getSnapshot())) }
+        updateBlank()
+        unsubscribeSession = binding.session.subscribe(updateBlank)
+        setReference(held)
+      }).catch((err) => {
+        unsubscribeNavigation?.(); unsubscribeSession?.()
+        held?.release(); held = null
+        if (!disposed) setError(err.message || "原生会话连接失败")
+      })
+      return () => { disposed = true; unsubscribeNavigation?.(); unsubscribeSession?.(); held?.release() }
+    }, [project?.id, sessions, attempt])
+    return n("aside", { className: "eo-agent", "aria-label": "项目原生聊天" },
+      n("div", { className: "eo-ahead" }, "运营 Agent", n("span", { className: "st" }, reference ? "DSH 原生会话" : error ? "连接失败" : "正在连接")),
+      n("div", { className: "eo-chat-context", title: project?.title }, project ? project.title + " · 独立对话" : "请先新建项目"),
+      n("div", { className: "eo-native-chat" }, reference ? n(ProjectHomeContext.Provider, { value: home && project ? { ...project, chatBlank: blank } : null }, n(SessionProvider, { session: reference }, renderSlot("expert-ops.conversation", {}))) :
+        n("div", { className: "eo-chat-state", role: error ? "alert" : "status" }, error || (project ? "正在加载项目会话…" : "暂无项目"),
+          error ? n("button", { className: "eo-btn", onClick: () => setAttempt((x) => x + 1) }, "重试连接") : null)))
   }
 
   function Drawer({ expert }) {
     const s = useStore()
-    const e = s.experts.find((x) => x.name === expert)
+    const e = s.experts.find((x) => x.id === expert.id && x.candidateProjectIds.includes(expert.projectId))
     if (!e) return null
     const status = e.bucket === "A" ? ["推荐", "#ecfdf5", "#047857"] : e.bucket === "B" ? ["待确认", "#fffbeb", "#b45309"] : ["排除", "#f3f4f6", "#6b7280"]
     const dims = [["专业匹配", 35, 0.92], ["经验年限", 25, 0.8], ["产能 / 档期", 15, 0.85], ["报价", 15, 0.7], ["信誉 / 历史", 10, 0.9]]
-    const move = (bucket) => {
-      set({
-        experts: s.experts.map((x) => (x.name === e.name ? { ...x, bucket } : x)),
-        drawer: null,
-      })
-      toast("已把「" + e.name + "」标记为「" + (bucket === "A" ? "推荐" : bucket === "B" ? "待确认" : "排除") + "」")
+    const move = (review) => {
+      if (reviewCandidates(expert.projectId, [e.id], review)) {
+        set({ drawer: null })
+        toast(review === "passed" ? "已人工确认通过" : review === "excluded" ? "已人工确认排除" : "已恢复待人工确认")
+      }
     }
     return n("div", { className: "eo-dw", onClick: (ev) => { if (ev.target === ev.currentTarget) set({ drawer: null }) } },
       n("div", { className: "eo-drawer" },
-        n("button", { className: "eo-x", onClick: () => set({ drawer: null }) }, "✕"),
+        n("button", { className: "eo-x", "aria-label": "关闭专家详情", onClick: () => set({ drawer: null }) }, "✕"),
         n("h2", null, e.name),
         n("div", { className: "eo-meta", style: { marginBottom: 8 } },
           n("span", null, e.src === "原识" ? "原识平台" : e.src === "飞书" ? "飞书表单" : "业务手填"),
@@ -511,10 +1602,10 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
         n("h3", { style: { margin: "13px 0 4px", fontSize: 12.3, color: "#374151" } }, "缺口与追问"),
         n("div", { className: "eo-why gap", style: { fontSize: 12.1 } }, e.gap || "无"),
         n("div", { className: "eo-dwacts" },
-          n("button", { className: "eo-btn g", onClick: () => move("A") }, "推荐"),
-          n("button", { className: "eo-btn y", onClick: () => move("B") }, "待确认"),
-          n("button", { className: "eo-btn r", onClick: () => move("C") }, "排除")),
-        n("div", { style: { fontSize: 11.2, color: "#9ca3af", marginTop: 8 } }, "人工覆写会强制选原因模板并写入审计日志（M3）。")))
+          n("button", { className: "eo-btn g", onClick: () => move("passed") }, "审核通过"),
+          n("button", { className: "eo-btn y", onClick: () => move("pending") }, "撤销人工结论"),
+          n("button", { className: "eo-btn r", onClick: () => move("excluded") }, "排除")),
+        n("div", { style: { fontSize: 11.2, color: "#9ca3af", marginTop: 8 } }, "人工结论独立于 AI 推荐；本机保存，数据库与审核日志待接入。")))
   }
 
   // ---------------- 注册 ----------------
@@ -534,6 +1625,9 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       console.warn("[dsh-expert-ops] slots service missing, UI not mounted")
       return
     }
+    ctx.effect(() => slots.inject("conversation.input.dock", () => slots.register({
+      name: "conversation.input.dock", id: "expert-ops-project-home", order: 20,
+    }, ProjectHomeDock)), "expert-ops: project home dock")
     // 左栏原生入口：点它会把主区切到下面的 main panel
     ctx.effect(() => slots.inject("sidebar.panellist", () => slots.register({
       name: "sidebar.panellist",
@@ -547,8 +1641,10 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       yield slots.register({
         name: "main",
         key: "expert-ops",
-        inject: () => ({}),
+        children: { "expert-ops.conversation": { kind: "single", scope: "session" } },
+        inject: () => ({ sessions: ctx.sessions }),
       }, Workbench)
+      yield slots.inject("expert-ops.conversation", () => slots.register({ name: "expert-ops.conversation" }, ProjectConversation))
     }), "expert-ops: main panel")
 
     console.info("[dsh-expert-ops] client apply() mounted")

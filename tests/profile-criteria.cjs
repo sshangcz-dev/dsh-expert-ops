@@ -1,0 +1,15 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const src=fs.readFileSync(process.argv[2]||'plugin/lib/client.js','utf8');
+const data=new Map();const c={localStorage:{getItem:k=>data.get(k)||null,setItem:(k,v)=>data.set(k,v)},artifactKey:(p,k)=>`old:${p}:${k}`,RECRUITMENT_RESULTS:{d1:{profile:{专业背景:'标注背景',从业经验:'2 年以上经验',能力要求:'质量检查',其他条件:'签署 NDA'}}},store:{artifactDrafts:{},artifactRevision:0}};
+c.set=p=>Object.assign(c.store,p);vm.createContext(c);
+vm.runInContext(src.slice(src.indexOf('  const PROFILE_SCHEMA'),src.indexOf('  const JD_FIELDS'))+src.slice(src.indexOf('  const profileKey'),src.indexOf('  function ProfileCriteriaCard'))+'\nthis.api={PROFILE_SCHEMA,normalizeProfile,loadProfile,saveProfile,profileCopy}',c);
+const a=c.api;assert.equal(a.PROFILE_SCHEMA.length,14);assert.equal(a.PROFILE_SCHEMA.filter(f=>f.type!=='text').length,10);
+const seed=a.loadProfile('d1');assert.equal(seed.conditions.years.value,2);assert.equal(seed.conditions.hours.value,null);assert.equal(seed.missingPolicy,'needs_verification');assert.equal(seed.legacyOther,'签署 NDA');
+data.set('old:d1:profile',JSON.stringify({values:{专业背景:'手工背景',从业经验:'新经历，没有年限',能力要求:'新要求',其他条件:'不得丢失'}}));
+const migrated=a.loadProfile('d1');assert.equal(migrated.conditions.background.value,'手工背景');assert.equal(migrated.conditions.years.value,null);assert.equal(migrated.legacyOther,'不得丢失');
+const draft=JSON.parse(JSON.stringify(migrated));draft.conditions.certificates={value:'CPA、CFA、CPA',operator:'all_of',requirement:'required'};draft.conditions.school={value:'学校 A，学校 B',requirement:'preferred'};draft.conditions.hours.value='15';draft.conditions.abilities.requirement='required';
+a.saveProfile('d1',draft);const saved=a.loadProfile('d1');assert.equal(saved.conditions.certificates.value.join(','),'CPA,CFA');assert.equal(saved.conditions.certificates.operator,'all_of');assert.equal(saved.conditions.school.requirement,'preferred');assert.equal(saved.conditions.hours.value,15);assert.equal(saved.conditions.abilities.requirement,'semantic');assert.ok(!a.profileCopy(saved).includes('毕业时间'));assert.ok(a.profileCopy(saved).includes('[必须满足]'));assert.ok(a.profileCopy(saved).includes('[优先考虑]'));assert.equal(a.loadProfile('d2').conditions.hours.value,null);assert.ok(data.has('old:d1:profile'));
+for(const value of [-1,'NaN','1e4',Infinity]){const invalid=JSON.parse(JSON.stringify(saved));invalid.conditions.years.value=value;assert.throws(()=>a.normalizeProfile(invalid));}
+assert.throws(()=>a.normalizeProfile({conditions:{hours:{value:169}}}));assert.throws(()=>a.normalizeProfile({conditions:{graduation:{value:'2026-99'}}}));assert.equal(a.normalizeProfile({conditions:{years:{value:''}}}).conditions.years.value,null);
+c.store.artifactDrafts['d1:profile:v2']=draft;c.localStorage.setItem=()=>{throw Error('quota')};assert.throws(()=>a.saveProfile('d1',draft));assert.ok(c.store.artifactDrafts['d1:profile:v2']);
+console.log('PASS: 14 fields / 10 structured + 4 semantic; legacy preservation; no inferred hard threshold after manual edit; nullable rules; typed values; required/preferred; project isolation; save failure retains draft');
