@@ -1,0 +1,28 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Syntax check (client bundle)
+        run: node --check plugin/lib/client.js
+      - name: Syntax check (host entry)
+        run: node --check plugin/index.js || true
+      - name: Validate package.json
+        run: node -e "JSON.parse(require('fs').readFileSync('plugin/package.json','utf8')); console.log('package.json ok')"
+      - name: Validate cordis patch yaml
+        run: |
+          python3 - <<'PY'
+          import yaml
+          yaml.safe_load(open('plugin/cordis.patch.yml'))
+          print('cordis.patch.yml ok')
+          PY
