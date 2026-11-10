@@ -1,0 +1,18 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const src=fs.readFileSync(process.argv[2]||'plugin/lib/client.js','utf8'),data=new Map();
+const c={crypto:require('node:crypto'),localStorage:{getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v)},store:{projects:[{id:'d1'},{id:'d2'}],artifactDrafts:{},artifactRevision:0},toast:()=>{},openProjectSpace:(projectId,tab,roleId)=>c.nav={projectId,tab,roleId}};c.set=x=>Object.assign(c.store,x);vm.createContext(c);
+vm.runInContext(src.slice(src.indexOf('  const PROFILE_SCHEMA'),src.indexOf('  const RECRUITMENT_RESULTS'))+`\nconst RECRUITMENT_RESULTS={d1:{profile:{专业背景:'标注背景'},jd:{职位名称:'标注岗位'}},d2:{profile:{专业背景:'另项目'},jd:{职位名称:'另一岗位'}}};`+src.slice(src.indexOf('  const artifactKey'),src.indexOf('  function ProfileCriteriaCard'))+'\nthis.api={loadRoles,loadProfile,saveProfile,saveArtifact,confirmRole,roleConfirmed,roleDraftPending,matchConfirmedRole,createRole,deleteRole,JD_FIELDS};',c);
+const a=c.api,role=(p='d1',id='main')=>a.loadRoles(p).find(r=>r.id===id);
+assert.equal(a.roleConfirmed(role()),false);assert.throws(()=>a.matchConfirmedRole('d1','main'),/确认/);
+a.confirmRole('d1','main');assert.ok(a.roleConfirmed(role()));assert.equal(a.roleConfirmed(role('d1','quality')),false);assert.equal(a.roleConfirmed(role('d2')),false);
+a.matchConfirmedRole('d1','main');assert.equal(JSON.stringify(c.nav),JSON.stringify({projectId:'d1',tab:'p3',roleId:'main'}));
+a.saveArtifact('d1','jd',a.JD_FIELDS,{职位名称:'只改JD'},'main');assert.ok(a.roleConfirmed(role()));
+let p=a.loadProfile('d1','main');a.saveProfile('d1',p,'main');assert.ok(a.roleConfirmed(role()));
+p.conditions.years.value=8;c.store.artifactDrafts['d1:role:main:profile:v2']=p;assert.ok(a.roleDraftPending('d1',role()));assert.throws(()=>a.matchConfirmedRole('d1','main'),/保存/);assert.throws(()=>a.confirmRole('d1','main'),/保存/);
+p.conditions.years.value='invalid';assert.equal(a.roleDraftPending('d1',role()),true);p.conditions.years.value=8;
+a.saveProfile('d1',p,'main');assert.equal(a.roleConfirmed(role()),false);a.confirmRole('d1','main');assert.ok(a.roleConfirmed(role()));
+const id=a.createRole('d1','空画像');assert.throws(()=>a.confirmRole('d1',id),/至少/);
+c.store.projects[0].ended=true;assert.throws(()=>a.matchConfirmedRole('d1','main'),/恢复/);c.store.projects[0].ended=false;
+a.deleteRole('d1','main');assert.equal(a.roleConfirmed(role()),false);assert.throws(()=>a.matchConfirmedRole('d1','main'),/删除/);
+c.localStorage.setItem=()=>{throw Error('quota')};assert.throws(()=>a.confirmRole('d2','main'),/quota/);assert.equal(a.roleConfirmed(role('d2')),false);
+console.log('PASS: unconfirmed gate; exact profile routing; cross-project isolation; saved edit invalidation; no-op/JD edits preserve confirmation; dirty/invalid drafts blocked safely; empty/deleted/ended blocked; persistence failure safe');

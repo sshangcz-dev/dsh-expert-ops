@@ -22,85 +22,91 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 
   const CSS = `
 .eo-glyph{display:block}
-.eo-root{height:100%;min-height:0;display:flex;background:#f7f8fa;font:13px/1.55 -apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif;color:#15171c}
-.eo-shell{flex:1;min-width:0;min-height:0;width:100%;background:#f7f8fa;overflow:hidden;display:grid;grid-template-columns:200px 1fr}
+.eo-root{--eo-page:#FFFFFF;--eo-sidebar:#FFFFFF;--eo-selected:#EDEDEC;--eo-hover:#F4F4F3;--eo-line:#E9E9E9;--eo-accent:#D97757;--eo-ink:#141413;--eo-muted:#6E6A60;height:100%;min-height:0;display:flex;background:var(--eo-page);font:13px/1.55 -apple-system,"PingFang SC","Helvetica Neue",Arial,sans-serif;color:#141413}
+.eo-shell{flex:1;min-width:0;min-height:0;width:100%;background:var(--eo-page);overflow:hidden;display:grid;grid-template-columns:200px 1fr}
 /* 左栏 */
-.eo-left{background:#fbfbfc;border-right:1px solid #e6e8ec;display:flex;flex-direction:column;min-height:0}
+.eo-left{background:var(--eo-sidebar);border-right:1px solid var(--eo-line);display:flex;flex-direction:column;min-height:0}
 .eo-brand{display:flex;align-items:center;gap:9px;padding:15px 15px 11px;font-weight:680}
-.eo-brand .dot{width:10px;height:10px;border-radius:3px;background:linear-gradient(135deg,#2563eb,#7c3aed)}
-.eo-brand small{margin-left:auto;font-size:10.5px;font-weight:500;color:#9ca3af}
+.eo-brand .dot{width:10px;height:10px;border-radius:3px;background:var(--eo-accent)}
+.eo-brand small{margin-left:auto;font-size:10.5px;font-weight:500;color:#91888A}
 .eo-nav{padding:2px 8px}
-.eo-nav button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:8px;color:#374151;font-size:13px;cursor:pointer}
-.eo-nav button:hover{background:#f1f2f5}
-.eo-nav button.on{background:#eceef2;font-weight:600}
-.eo-nav .ico{width:16px;color:#9ca3af;font-size:12px;display:grid;place-items:center}
-.eo-nav button.on .ico{color:#2563eb}
-.eo-sec{display:flex;align-items:center;justify-content:space-between;padding:13px 15px 5px;font-size:10.5px;letter-spacing:.07em;color:#9ca3af;text-transform:uppercase}
+.eo-nav button{display:flex;align-items:center;gap:9px;width:100%;border:0;background:transparent;padding:8px 10px;border-radius:8px;color:#2C2A27;font-size:13px;cursor:pointer}
+.eo-nav button:hover{background:var(--eo-hover)}
+.eo-nav button.on{background:var(--eo-selected);color:var(--eo-ink);font-weight:600}
+.eo-nav .ico{width:16px;color:#91888A;font-size:12px;display:grid;place-items:center}
+.eo-nav button.on .ico{color:var(--eo-ink)}
+.eo-sec{display:flex;align-items:center;justify-content:space-between;padding:13px 15px 5px;font-size:10.5px;letter-spacing:.07em;color:#91888A;text-transform:uppercase}
 .eo-demands{padding:0 8px;overflow:auto;flex:1;min-height:0}
 .eo-demand{display:block;width:100%;text-align:left;border:1px solid transparent;background:transparent;padding:8px 10px;border-radius:9px;margin-bottom:2px;cursor:pointer}
-.eo-demand:hover{background:#f1f2f5}
-.eo-demand.on{background:#fff;border-color:#e6e8ec;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+.eo-demand:hover{background:var(--eo-hover)}
+.eo-demand.on{background:var(--eo-selected);border-color:transparent;box-shadow:none}
 .eo-demand b{display:block;padding-right:14px;font-size:12.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .eo-demand{position:relative}
-.eo-demand-chevron{position:absolute;right:9px;top:10px;color:#9ca3af;font-size:10px;transition:transform .15s}
-.eo-demand[aria-expanded="true"] .eo-demand-chevron{transform:rotate(90deg)}
-.eo-project-menu{margin:3px 0 9px 18px;padding-left:8px;border-left:1px solid #e1e5eb;display:grid;gap:2px}
-.eo-project-menu button{display:flex;align-items:center;justify-content:space-between;gap:4px;width:100%;text-align:left;border:0;border-radius:6px;background:transparent;color:#6b7280;padding:7px 8px;font-size:11.5px;cursor:pointer}
-.eo-project-menu button:hover{background:#f1f2f5}
-.eo-project-menu button.on{background:#eaf1ff;color:#1d4ed8;font-weight:600}
-.eo-project-menu button:focus-visible,.eo-demand:focus-visible{outline:2px solid #2563eb;outline-offset:1px}
-.eo-demand span{display:flex;align-items:center;gap:6px;color:#6b7280;font-size:11.2px;margin-top:2px}
+.eo-demand-chevron{position:absolute;right:9px;top:9px;width:18px;height:18px;display:grid;place-items:center;border:0;border-radius:5px;background:transparent;color:#91888A;font:inherit;font-size:10px;cursor:pointer;transition:transform .15s,background .15s}
+.eo-demand-chevron:hover{background:#E9E9E9;color:#141413}
+.eo-demand-chevron:focus-visible{outline:2px solid var(--eo-accent);outline-offset:1px}
+.eo-project-item.expanded .eo-demand-chevron{transform:rotate(90deg)}
+.eo-project-menu{margin:3px 0 9px 18px;padding-left:8px;border-left:1px solid #E9E9E9;display:grid;gap:2px}
+.eo-project-menu button{display:flex;align-items:center;justify-content:space-between;gap:4px;width:100%;text-align:left;border:0;border-radius:6px;background:transparent;color:#6E6A60;padding:7px 8px;font-size:11.5px;cursor:pointer}
+.eo-project-menu button:hover{background:var(--eo-hover)}
+.eo-project-menu button.on{background:var(--eo-selected);color:var(--eo-ink);font-weight:600}
+.eo-project-menu button:focus-visible,.eo-demand:focus-visible{outline:2px solid var(--eo-accent);outline-offset:1px}
+.eo-demand span{display:flex;align-items:center;gap:6px;color:#6E6A60;font-size:11.2px;margin-top:2px}
 .eo-sdot{width:6px;height:6px;border-radius:50%;background:#059669}
-.eo-sdot.draft{background:#9ca3af}.eo-sdot.warn{background:#f59e0b}
-.eo-me{display:flex;align-items:center;gap:9px;padding:11px 15px;border-top:1px solid #e6e8ec;color:#6b7280;font-size:11.5px}
-.eo-avatar{width:26px;height:26px;border-radius:50%;background:#dbeafe;color:#1d4ed8;display:grid;place-items:center;font-weight:700;font-size:11px}
+.eo-sdot.draft{background:#91888A}.eo-sdot.warn{background:#f59e0b}
+.eo-me{display:flex;align-items:center;gap:9px;padding:11px 15px;border-top:1px solid var(--eo-line);color:#6E6A60;font-size:11.5px}
+.eo-avatar{width:26px;height:26px;border-radius:50%;background:#F1F1F0;color:#B4623E;display:grid;place-items:center;font-weight:700;font-size:11px}
 .eo-project-item{position:relative}
 .eo-project-item .eo-demand b{padding-right:31px}
 .eo-project-item .eo-demand-chevron{right:27px}
-.eo-project-more{position:absolute;right:5px;top:7px;border:0;border-radius:4px;background:transparent;color:#6b7280;cursor:pointer;font-size:16px;line-height:22px;width:22px;opacity:0}
+.eo-project-more{position:absolute;right:5px;top:7px;border:0;border-radius:4px;background:transparent;color:#6E6A60;cursor:pointer;font-size:16px;line-height:22px;width:22px;opacity:0}
 .eo-project-item:hover>.eo-project-more,.eo-project-item:focus-within>.eo-project-more{opacity:1}
-.eo-project-more:hover{background:#e5e7eb}
-.eo-ended-toggle{display:flex;align-items:center;width:100%;border:0;border-top:1px solid #e6e8ec;background:transparent;padding:12px 7px 8px;margin-top:12px;text-align:left;font-size:11.5px;color:#6b7280;cursor:pointer}
-.eo-list-empty{font-size:11.5px;color:#9ca3af;padding:0 8px}
-.eo-undo-delete{width:100%;text-align:left;border:0;background:transparent;font-size:11px;color:#2563eb;padding:10px 7px;cursor:pointer;overflow-wrap:anywhere}
-.eo-context-menu{position:fixed;z-index:2000;width:172px;padding:5px;background:#fff;border:1px solid #e6e8ec;border-radius:9px;box-shadow:0 8px 28px #15243b29}
-.eo-context-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:5px;padding:7px 10px;font-size:12px;cursor:pointer;color:#374151}
-.eo-context-menu button:hover,.eo-context-menu button:focus-visible{background:#eef4ff;outline:none}
+.eo-project-more:hover{background:#E9E9E9}
+.eo-ended-toggle{display:flex;align-items:center;width:100%;border:0;border-top:1px solid var(--eo-line);background:transparent;padding:12px 7px 8px;margin-top:12px;text-align:left;font-size:11.5px;color:#6E6A60;cursor:pointer}
+.eo-list-empty{font-size:11.5px;color:#91888A;padding:0 8px}
+.eo-undo-delete{width:100%;text-align:left;border:0;background:transparent;font-size:11px;color:#D97757;padding:10px 7px;cursor:pointer;overflow-wrap:anywhere}
+.eo-context-menu{position:fixed;z-index:2000;width:172px;padding:5px;background:#fff;border:1px solid var(--eo-line);border-radius:9px;box-shadow:0 8px 28px #14141329}
+.eo-context-menu button{display:block;width:100%;text-align:left;border:0;background:transparent;border-radius:5px;padding:7px 10px;font-size:12px;cursor:pointer;color:#2C2A27}
+.eo-context-menu button:hover,.eo-context-menu button:focus-visible{background:#F1F1F0;outline:none}
 .eo-context-menu .danger{color:#dc2626;border-top:1px solid #eef0f3}
-.eo-project-dialog-backdrop{position:fixed;inset:0;z-index:2100;background:#15243b33;display:grid;place-items:center}
-.eo-project-dialog{width:min(360px,calc(100vw - 40px));background:white;border-radius:12px;padding:20px;box-shadow:0 16px 50px #15243b33}
+.eo-project-dialog-backdrop{position:fixed;inset:0;z-index:2100;background:#14141333;display:grid;place-items:center}
+.eo-project-dialog{width:min(360px,calc(100vw - 40px));background:white;border-radius:12px;padding:20px;box-shadow:0 16px 50px #14141333}
 .eo-project-dialog h3{margin:0 0 16px;font-size:15px}
-.eo-project-dialog p{font-size:12px;color:#6b7280;line-height:1.7;overflow-wrap:anywhere}
+.eo-project-dialog p{font-size:12px;color:#6E6A60;line-height:1.7;overflow-wrap:anywhere}
 .eo-project-dialog label{display:grid;gap:6px;font-size:12px}
-.eo-project-dialog input{box-sizing:border-box;width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:8px 10px;font:inherit}
+.eo-project-dialog input{box-sizing:border-box;width:100%;border:1px solid #DEDCD3;border-radius:6px;padding:8px 10px;font:inherit}
 .eo-project-dialog-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
 .eo-project-dialog .danger{color:#fff;background:#dc2626;border-color:#dc2626}
 @media(hover:none){.eo-project-more{opacity:1}}
 /* 右栏 */
-.eo-right{display:flex;flex-direction:column;min-width:0;min-height:0;background:#f7f8fa}
-.eo-head{background:#fff;border-bottom:1px solid #e6e8ec;padding:6px 14px}
+.eo-right{display:flex;flex-direction:column;min-width:0;min-height:0;background:var(--eo-page)}
+.eo-head{background:#fff;border-bottom:1px solid var(--eo-line);padding:6px 14px}
 .eo-htop{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 .eo-htop h1{font-size:14px;line-height:1.4;margin:0;font-weight:650;min-width:0;overflow-wrap:anywhere}
-.eo-title-divider{color:#9ca3af;margin:0 8px;font-weight:400}
-.eo-title-space{font-weight:500;color:#374151}
+.eo-title-btn{border:0;background:transparent;padding:2px 4px;margin:-2px -4px;border-radius:6px;font:inherit;color:inherit;cursor:pointer;text-align:left;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eo-title-btn:hover{color:var(--eo-accent);background:var(--eo-hover)}
+.eo-title-btn:focus-visible{outline:2px solid var(--eo-accent);outline-offset:2px}
+.eo-title-divider{color:#91888A;margin:0 8px;font-weight:400}
+.eo-title-space{font-weight:500;color:#2C2A27}
 .eo-head .eo-btn{font-size:11.5px;padding:4px 9px;border-radius:6px}
 .eo-head .eo-hactions{gap:6px;flex-shrink:0}
-.eo-meta{display:flex;gap:12px;flex-wrap:wrap;color:#6b7280;font-size:11.8px;margin-top:3px}
-.eo-tag{font-size:10.5px;padding:1px 7px;border-radius:5px;background:#f3f4f6;color:#4b5563}
+.eo-meta{display:flex;gap:12px;flex-wrap:wrap;color:#6E6A60;font-size:11.8px;margin-top:3px}
+.eo-tag{font-size:10.5px;padding:1px 7px;border-radius:5px;background:#F1F1F0;color:#6E6A60}
 .eo-tag.warn{background:#fffbeb;color:#b45309}
 .eo-hactions{margin-left:auto;display:flex;gap:8px}
-.eo-btn{border:1px solid #e6e8ec;background:#fff;padding:6px 11px;border-radius:8px;font-size:12.3px;cursor:pointer}
-.eo-btn:hover{border-color:#c9cfd8}
-.eo-btn.primary{background:#2563eb;border-color:#2563eb;color:#fff}
-.eo-badge{font-size:10.5px;background:#f1f2f5;color:#6b7280;padding:0 5px;border-radius:5px;margin-left:5px}
+.eo-btn{border:1px solid var(--eo-line);background:#fff;padding:6px 11px;border-radius:8px;font-size:12.3px;cursor:pointer}
+.eo-btn:hover{border-color:#DEDCD3}
+.eo-btn.primary{background:var(--eo-accent);border-color:var(--eo-accent);color:#fff}
+.eo-btn.primary:hover{background:#C4603C;border-color:#C4603C}
+.eo-badge{font-size:10.5px;background:#f1f2f5;color:#6E6A60;padding:0 5px;border-radius:5px;margin-left:5px}
 .eo-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) minmax(340px,36%);min-height:0}
 .eo-canvas{overflow:auto;padding:14px 14px 22px;min-width:0}
 
 /* AI totals and compact human review queue */
 .eo-candidate-workspace{container-type:inline-size}
-.eo-stat-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,3fr) minmax(0,3fr);gap:10px;margin-bottom:12px}
+.eo-stat-grid{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,3fr) minmax(0,3fr);gap:10px;position:sticky;top:-12px;z-index:6;margin:0 -12px 10px;padding:10px 12px 8px;background:var(--eo-page)}
 .eo-stat{position:relative;border:1px solid #d1fae5;border-radius:11px;background:#ecfdf5;color:#047857;text-align:left;padding:10px 14px;cursor:pointer;font:inherit}
-.eo-stat.B{background:#fffbeb;border-color:#fde68a;color:#b45309}.eo-stat.C{background:#f3f4f6;border-color:#e5e7eb;color:#6b7280}
+.eo-stat.B{background:#fffbeb;border-color:#fde68a;color:#b45309}.eo-stat.C{background:#F1F1F0;border-color:#E9E9E9;color:#6E6A60}
 .eo-stat[aria-pressed="true"]{outline:2px solid currentColor;outline-offset:1px}
 .eo-stat-label{display:block;padding-right:32px;font-size:12px;font-weight:600}.eo-stat-number{display:block;font-size:32px;font-weight:650;line-height:1.2;margin-top:4px;font-variant-numeric:tabular-nums}
 .eo-stat-caption{display:block;margin-top:3px;font-size:10.5px;opacity:.85}
@@ -108,52 +114,52 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-pool-pending input{min-height:0}
 .eo-stat-number small{font-size:11px;font-weight:400;margin-left:6px}
 .eo-stat-new{position:absolute;right:12px;top:12px;border-radius:12px;padding:2px 7px;background:#fff;color:inherit;border:1px solid currentColor;font-size:11px;font-weight:600}
-.eo-pool-tabs{display:flex;gap:20px;border-bottom:1px solid #e0e5ec;margin-bottom:8px;overflow:auto}
-.eo-pool-tabs button{white-space:nowrap;font:inherit;font-size:12px;padding:0 0 8px;border:0;border-bottom:2px solid transparent;color:#6b7280;background:none;cursor:pointer}
-.eo-pool-tabs button[aria-pressed="true"]{color:#1d4ed8;border-bottom-color:#2563eb;font-weight:600}.eo-pool-tabs small{margin-left:5px;font:inherit}
-.eo-pool-filters{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}.eo-pool-filters select,.eo-pool-filters input{min-height:33px;box-sizing:border-box;border:1px solid #d5dce6;border-radius:7px;background:#fff;padding:6px 9px;font:inherit;font-size:12px;color:#374151;min-width:0}
+.eo-pool-tabs{display:flex;gap:6px;border-bottom:1px solid var(--eo-line);margin-bottom:8px;overflow:auto}
+.eo-pool-tabs button{white-space:nowrap;font:inherit;font-size:12px;padding:5px 9px;margin-bottom:6px;border-radius:6px;border:0;border-bottom:2px solid transparent;color:#6E6A60;background:none;cursor:pointer}
+.eo-pool-tabs button[aria-pressed="true"]{color:var(--eo-ink);border-bottom-color:transparent;background:var(--eo-selected);font-weight:600}.eo-pool-tabs small{margin-left:5px;font:inherit}
+.eo-pool-filters{display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap}.eo-pool-filters select,.eo-pool-filters input{min-height:33px;box-sizing:border-box;border:1px solid #E5E3DC;border-radius:7px;background:#fff;padding:6px 9px;font:inherit;font-size:12px;color:#2C2A27;min-width:0}
 .eo-pool-filters input{flex:1;min-width:150px}.eo-pool-filters select{max-width:100%}
-.eo-pool-bulk{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:11.5px;color:#64748b;flex-wrap:wrap}.eo-pool-checks{display:flex;align-items:center;gap:14px;flex-wrap:nowrap}.eo-pool-bulk label{display:flex;align-items:center;gap:5px;white-space:nowrap}.eo-pool-bulk input{margin:0;accent-color:#2563eb}.eo-pool-selected{white-space:nowrap}.eo-pool-bulk-actions{display:flex;gap:6px;margin-left:auto}.eo-pool-bulk-actions .eo-btn{padding:4px 9px;font-size:11.5px}
+.eo-pool-bulk{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:11.5px;color:#64748b;flex-wrap:wrap}.eo-pool-checks{display:flex;align-items:center;gap:14px;flex-wrap:nowrap}.eo-pool-bulk label{display:flex;align-items:center;gap:5px;white-space:nowrap}.eo-pool-bulk input{margin:0;accent-color:var(--eo-accent)}.eo-pool-selected{white-space:nowrap}.eo-pool-bulk-actions{display:flex;gap:6px;margin-left:auto}.eo-pool-bulk-actions .eo-btn{padding:4px 9px;font-size:11.5px}
 .eo-candidate-workspace .eo-btn:disabled{opacity:.45;cursor:not-allowed}
 .eo-pool-list{background:white;border:1px solid #e0e5ec;border-radius:10px;overflow:hidden}
-.eo-pool-row{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:11px;padding:14px;border-bottom:1px solid #e7ecf2;align-items:start}.eo-pool-row:last-child{border-bottom:0}.eo-pool-row>input{margin:3px 0 0;accent-color:#2563eb}
-.eo-pool-row.reviewed{background:#f5f6f8}.eo-pool-row.reviewed .eo-pool-info,.eo-pool-row.reviewed .eo-pool-status{color:#7b8492}.eo-pool-row.reviewed .eo-ai-badge{background:#e8ebef;color:#6b7280;border-color:#dce1e7}
+.eo-pool-row{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:11px;padding:14px;border-bottom:1px solid #e7ecf2;align-items:start}.eo-pool-row:last-child{border-bottom:0}.eo-pool-row>input{margin:3px 0 0;accent-color:var(--eo-accent)}
+.eo-pool-row.reviewed{background:#f5f6f8}.eo-pool-row.reviewed .eo-pool-info,.eo-pool-row.reviewed .eo-pool-status{color:#7b8492}.eo-pool-row.reviewed .eo-ai-badge{background:#e8ebef;color:#6E6A60;border-color:#dce1e7}
 .eo-pool-new{display:inline-flex;align-items:center;padding:2px 6px;border-radius:5px;background:#fef2f2;color:#b91c1c;border:1px solid #fecaca;font-size:10px;font-weight:600}
-.eo-pool-source{display:inline-flex;padding:2px 6px;border-radius:5px;font-size:10px;background:#eff6ff;color:#1d4ed8}
+.eo-pool-source{display:inline-flex;padding:2px 6px;border-radius:5px;font-size:10px;background:#eff6ff;color:#B4623E}
 .eo-pool-source.feishu{background:#f5f3ff;color:#6d28d9}.eo-pool-source.manual{background:#ecfeff;color:#0e7490}
-.eo-pool-row.reviewed .eo-pool-source{background:#e8ebef;color:#6b7280}
+.eo-pool-row.reviewed .eo-pool-source{background:#e8ebef;color:#6E6A60}
 .eo-pool-name{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.eo-pool-name strong{font-size:13px}.eo-pool-name small{font-size:10px;color:#8a94a5}
-.eo-ai-badge{border:1px solid #bbebd7;background:#ecfdf5;color:#047857;padding:2px 6px;border-radius:5px;font-size:10px}.eo-ai-badge.B{background:#fff7ed;border-color:#fed7aa;color:#b45309}.eo-ai-badge.C{background:#f3f4f6;border-color:#d1d5db;color:#6b7280}
+.eo-ai-badge{border:1px solid #bbebd7;background:#ecfdf5;color:#047857;padding:2px 6px;border-radius:5px;font-size:10px}.eo-ai-badge.B{background:#fff7ed;border-color:#fed7aa;color:#b45309}.eo-ai-badge.C{background:#F1F1F0;border-color:#d1d5db;color:#6E6A60}
 .eo-pool-info{min-width:0;color:#334155}.eo-pool-info p{font-size:11.5px;line-height:1.7;margin:5px 0 0;overflow-wrap:anywhere}.eo-pool-info .eo-pool-reason{color:#778296;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.eo-pool-side{display:flex;flex-direction:column;gap:7px;align-items:flex-end}.eo-pool-status{font-size:11px;color:#64748b}.eo-pool-row-actions{display:flex;gap:6px;flex-wrap:wrap}.eo-pool-row-actions .eo-btn{font-size:11px;padding:4px 8px}.eo-pool-detail{font:inherit;font-size:11px;background:none;border:0;color:#2563eb;cursor:pointer;padding:0}
+.eo-pool-side{display:flex;flex-direction:column;gap:7px;align-items:flex-end}.eo-pool-status{font-size:11px;color:#64748b}.eo-pool-row-actions{display:flex;gap:6px;flex-wrap:wrap}.eo-pool-row-actions .eo-btn{font-size:11px;padding:4px 8px}.eo-pool-detail{font:inherit;font-size:11px;background:none;border:0;color:#D97757;cursor:pointer;padding:0}
 .eo-pool-empty{padding:28px;text-align:center;font-size:12px;color:#64748b}.eo-pool-note{font-size:10.5px;color:#8a94a5;margin-top:10px}
 @container(max-width:620px){.eo-pool-row{grid-template-columns:16px minmax(0,1fr)}.eo-pool-side{grid-column:2;flex-direction:row;align-items:center;flex-wrap:wrap}.eo-pool-row-actions{margin-left:auto}.eo-stat{padding:12px}.eo-stat-number{font-size:28px}.eo-pool-tabs{gap:14px}}
 
 /* 卡片 */
-.eo-card{background:#fff;border:1px solid #e6e8ec;border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 10px 26px rgba(16,24,40,.05)}
+.eo-card{background:#fff;border:1px solid var(--eo-line);border-radius:12px;box-shadow:0 1px 2px rgba(16,24,40,.05),0 10px 26px rgba(16,24,40,.05)}
 .eo-pad{padding:13px 15px}
-.eo-card h3{margin:0 0 9px;font-size:12.3px;font-weight:650;color:#374151;display:flex;align-items:center;gap:8px}
+.eo-card h3{margin:0 0 9px;font-size:12.3px;font-weight:650;color:#2C2A27;display:flex;align-items:center;gap:8px}
 .eo-grid2{display:grid;grid-template-columns:1.05fr .95fr;gap:13px}
 .eo-row{display:grid;grid-template-columns:88px 1fr;gap:10px;padding:6px 0;border-bottom:1px dashed #eef0f3;font-size:12.5px}
 .eo-row:last-child{border-bottom:0}
-.eo-row .k{color:#6b7280;font-size:12.1px}
+.eo-row .k{color:#6E6A60;font-size:12.1px}
 .eo-recruitment{container-type:inline-size}
 .eo-artifact-switcher{min-width:0}
-.eo-artifact-tabs{display:flex;gap:20px;padding:0 16px;border-bottom:1px solid #e5e7eb}
-.eo-artifact-tab{appearance:none;border:0;border-bottom:2px solid transparent;background:none;padding:13px 0 11px;color:#6b7280;font:inherit;font-size:13px;font-weight:600;cursor:pointer}
-.eo-artifact-tab[aria-selected="true"]{color:#2563eb;border-bottom-color:#2563eb}
-.eo-artifact-tab:focus-visible{outline:2px solid #2563eb;outline-offset:2px;border-radius:3px}
+.eo-artifact-tabs{display:flex;gap:4px;padding:5px 10px;border-bottom:1px solid #E9E9E9}
+.eo-artifact-tab{appearance:none;border:0;background:none;padding:3px 8px;border-radius:5px;color:#6E6A60;font:inherit;font-size:11.5px;font-weight:600;line-height:1.45;cursor:pointer}
+.eo-artifact-tab[aria-selected="true"]{color:var(--eo-ink);border-bottom-color:transparent;background:var(--eo-selected)}
+.eo-artifact-tab:focus-visible{outline:2px solid var(--eo-accent);outline-offset:2px;border-radius:3px}
 .eo-artifact-panel[hidden]{display:none}
 .eo-artifact-panel > .eo-artifact-card{border:0;border-radius:0;background:transparent;box-shadow:none;min-width:0}
 .eo-artifact-panel .eo-artifact-head > .eo-tag{margin:0}
 .eo-recruitment .eo-fields{margin:0}
 .eo-artifact-card{display:flex;flex-direction:column}
-.eo-profile-section-title{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:650}
-.eo-profile-section-title span{font-size:10px;color:#6b7280;font-weight:400}
-.eo-profile-section-title.semantic{border-top:1px solid #e6e8ec;padding-top:14px;margin-top:14px}
+.eo-profile-section-title{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:4px 8px;font-size:16px;line-height:1.4;font-weight:700;color:var(--eo-ink)}
+.eo-profile-section-title span{font-size:10px;color:#6E6A60;font-weight:400}
+.eo-profile-section-title.semantic{border-top:1px solid var(--eo-line);padding-top:12px;margin-top:8px}
 .eo-profile-help{font-size:10.5px;color:#788293;margin:4px 0 10px}
 .eo-criteria-group{margin-bottom:10px}
-.eo-criteria-group h4{font-size:10.5px;font-weight:500;color:#8993a2;margin:0 0 4px}
+.eo-criteria-group h4{font-size:12px;line-height:1.5;font-weight:600;color:#5c626b;margin:0 0 4px}
 .eo-criteria-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 12px}
 .eo-criterion{min-width:0;border-bottom:1px dashed #e8ecf2;padding:7px 0}
 .eo-criterion-label{font-size:11px;color:#647084;display:flex;align-items:center;flex-wrap:wrap;gap:5px;margin-bottom:3px}
@@ -163,8 +169,6 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-criterion .eo-empty-field{color:#a2a9b4}
 .eo-criterion-options{display:flex;gap:5px;flex-wrap:wrap;margin-top:5px}
 .eo-criterion-options select{box-sizing:border-box;max-width:100%;font:inherit;font-size:10px;color:#536174;border:1px solid #d8e0eb;border-radius:4px;background:white;padding:3px}
-.eo-criterion-hint{font-size:9px;color:#8993a2}
-.eo-profile-policy{font-size:10px;color:#697889;background:#f7f9fc;padding:7px 9px;border-radius:5px;line-height:1.7;margin:0}
 .eo-criterion.semantic{padding:9px 0}
 .eo-profile-legacy{font-size:11px;color:#788293;margin-top:12px}
 .eo-profile-legacy summary{cursor:pointer}.eo-profile-legacy p{white-space:pre-wrap}
@@ -172,148 +176,185 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-profile-criteria .eo-field-editor{font-size:12px}
 .eo-artifact-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:10px;flex-wrap:wrap}
 .eo-artifact-head h3{margin:0}
+.eo-artifact-head-inline{margin-bottom:7px}
+.eo-artifact-head-inline .eo-profile-section-title{font-size:18px;font-weight:750;line-height:1.3;margin:0}
+.eo-artifact-head-inline .eo-profile-section-title span{font-size:10.5px;font-weight:400}
 .eo-artifact-head .eo-btn{font-size:11px;padding:4px 8px;flex-shrink:0}
 .eo-editable-row{cursor:text}
 .eo-field-value{display:block;text-align:left;width:100%;font:inherit;color:inherit;line-height:inherit;border:0;background:transparent;padding:2px 4px;margin:-2px -4px;border-radius:4px;white-space:pre-wrap;overflow-wrap:anywhere;cursor:text}
 .eo-editable-row:hover .eo-field-value{background:#f2f6ff}
-.eo-field-value:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
-.eo-field-editor{box-sizing:border-box;width:100%;min-width:0;display:block;font:inherit;color:inherit;line-height:1.65;border:1px solid #93b4f5;border-radius:6px;background:#fff;padding:6px 8px;resize:vertical;max-height:350px;outline-color:#2563eb}
+.eo-field-value:focus-visible{outline:2px solid var(--eo-accent);outline-offset:2px}
+.eo-field-editor{box-sizing:border-box;width:100%;min-width:0;display:block;font:inherit;color:inherit;line-height:1.65;border:1px solid #93b4f5;border-radius:6px;background:#fff;padding:6px 8px;resize:vertical;max-height:350px;outline-color:#D97757}
 .eo-artifact-actions{margin-top:auto;padding-top:14px;display:flex;align-items:center;justify-content:flex-end;gap:8px}
 .eo-artifact-actions span{margin-right:auto;font-size:11px;color:#8a6b31}
 .eo-artifact-actions .eo-btn:disabled,.eo-artifact-head .eo-btn:disabled{opacity:.45;cursor:not-allowed}
 .eo-upload{margin-bottom:10px;padding:8px 12px;box-shadow:0 1px 2px rgba(16,24,40,.03)}
 .eo-upload-head{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .eo-upload-actions{display:flex;align-items:center;gap:8px;flex-shrink:0}
-.eo-upload-actions .eo-btn:disabled{background:#edf0f5;border-color:#e1e5eb;color:#a1a8b4;cursor:not-allowed;box-shadow:none}
+.eo-upload-actions .eo-btn:disabled{background:#edf0f5;border-color:#E9E9E9;color:#a1a8b4;cursor:not-allowed;box-shadow:none}
 .eo-upload-head h3{margin:0;white-space:nowrap}
 .eo-upload-info{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
 .eo-upload .eo-btn{padding:4px 9px;font-size:11.5px}
-.eo-upload-files summary{cursor:pointer;font-size:11.5px;color:#2563eb;margin-top:7px}
-.eo-upload-note{color:#6b7280;font-size:11.5px}
+.eo-upload-files summary{cursor:pointer;font-size:11.5px;color:#D97757;margin-top:7px}
+.eo-upload-note{color:#6E6A60;font-size:11.5px}
 .eo-upload-list{list-style:none;margin:10px 0 0;padding:0}
 .eo-upload-list li{display:flex;align-items:center;gap:10px;padding:7px 0;border-top:1px solid #eef0f3}
 .eo-upload-name{min-width:0;flex:1;overflow-wrap:anywhere}
-.eo-upload-size{color:#6b7280;font-size:11px;white-space:nowrap}
+.eo-upload-size{color:#6E6A60;font-size:11px;white-space:nowrap}
 .eo-upload-error{color:#b45309;font-size:12px;margin-top:8px;white-space:pre-line}
 .eo-recruitment .eo-row{grid-template-columns:76px minmax(0,1fr)}
 .eo-recruitment .eo-row dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}
 .eo-recruitment .eo-profile-fields .eo-row{grid-template-columns:minmax(0,1fr);gap:3px;padding:8px 0}
-.eo-recruitment .eo-empty-field{color:#6b7280}
+.eo-recruitment .eo-empty-field{color:#6E6A60}
 .eo-recruitment .eo-evidence{margin-top:13px}
-.eo-evidence summary{cursor:pointer;font-size:12.3px;font-weight:650;color:#374151}
+.eo-evidence summary{cursor:pointer;font-size:12.3px;font-weight:650;color:#2C2A27}
 .eo-evidence summary .eo-tag{margin-left:7px}
-.eo-recruitment .eo-raw{font-size:12.5px;line-height:1.82;color:#374151;max-height:330px;overflow:auto}
+.eo-recruitment .eo-raw{font-size:12.5px;line-height:1.82;color:#2C2A27;max-height:330px;overflow:auto}
 .eo-recruitment .eo-raw mark{background:#fef3c7;padding:1px 2px;border-radius:3px}
 .eo-recruitment .eo-raw p:last-child{margin-bottom:0}
 
 .eo-kb-toolbar{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:8px}
 .eo-kb-toolbar h3{margin:0;overflow-wrap:anywhere}
-.eo-kb-toolbar input{width:190px;max-width:100%;border:1px solid #e6e8ec;border-radius:7px;padding:6px 9px;font:inherit}
+.eo-kb-toolbar input{width:190px;max-width:100%;border:1px solid var(--eo-line);border-radius:7px;padding:6px 9px;font:inherit}
 .eo-kb-docs{margin-top:10px}
 .eo-kb-doc{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:1px solid transparent;border-top-color:#eef0f3;background:transparent;border-radius:7px;padding:11px 8px;cursor:pointer;font:inherit;color:inherit}
 .eo-kb-doc:hover,.eo-kb-doc.on{background:#f3f7ff;border-color:#cdddf9}
-.eo-kb-file-icon{font-size:9px;color:#2563eb;background:#eff5ff;border:1px solid #dbe7fb;border-radius:5px;padding:8px 4px;min-width:26px;text-align:center}
+.eo-kb-file-icon{font-size:9px;color:#D97757;background:#eff5ff;border:1px solid #dbe7fb;border-radius:5px;padding:8px 4px;min-width:26px;text-align:center}
 .eo-kb-file-name{flex:1;min-width:0;overflow-wrap:anywhere}
 .eo-kb-file-name b{font-size:12px;font-weight:550;display:block}
-.eo-kb-file-name small{display:block;color:#9ca3af;font-size:11px;margin-top:3px}
+.eo-kb-file-name small{display:block;color:#91888A;font-size:11px;margin-top:3px}
 .eo-kb-doc>.eo-tag{white-space:nowrap}
 .eo-kb-preview{margin-top:12px}
-.eo-kb-quotes{font-size:12.5px;line-height:1.8;color:#374151}
-.eo-kb-quotes small{display:block;color:#9ca3af;font-size:11px}
+.eo-kb-quotes{font-size:12.5px;line-height:1.8;color:#2C2A27}
+.eo-kb-quotes small{display:block;color:#91888A;font-size:11px}
 .eo-kb-scope{padding:9px 13px;border-bottom:1px solid #eef0f3}
-.eo-kb-scope label{display:grid;gap:5px;font-size:11px;color:#6b7280}
-.eo-kb-scope select{width:100%;min-width:0;border:1px solid #e6e8ec;border-radius:6px;padding:6px;background:#f9fafb;font-size:11.5px;color:#374151}
+.eo-kb-scope label{display:grid;gap:5px;font-size:11px;color:#6E6A60}
+.eo-kb-scope select{width:100%;min-width:0;border:1px solid var(--eo-line);border-radius:6px;padding:6px;background:#f9fafb;font-size:11.5px;color:#2C2A27}
 .eo-kb-welcome h3{font-size:14px;margin:7px 0}
-.eo-kb-welcome p{font-size:12px;color:#6b7280;line-height:1.8}
-.eo-kb-welcome small{font-size:11px;color:#9ca3af}
+.eo-kb-welcome p{font-size:12px;color:#6E6A60;line-height:1.8}
+.eo-kb-welcome small{font-size:11px;color:#91888A}
+.eo-kb-crumbs{display:flex;align-items:center;gap:6px;min-width:0;font-size:12.5px}
+.eo-crumb{border:0;background:transparent;padding:2px 5px;border-radius:5px;color:#6E6A60;font:inherit;font-size:12px;cursor:pointer}
+.eo-crumb:hover{background:var(--eo-hover);color:var(--eo-ink)}
+.eo-crumb.on{color:var(--eo-ink);font-weight:600}
+.eo-crumb-sep{color:#B7B2A9}
+.eo-kb-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.eo-kb-nav{display:flex;align-items:center;gap:10px;padding:9px 12px;background:#fff;border:1px solid var(--eo-line);border-radius:12px;margin-bottom:14px}
+.eo-kb-nav .eo-kb-toolbar{flex:1;margin-bottom:0}
+.eo-kb-content{padding:0 2px}
+.eo-kb-move{border:1px solid var(--eo-line);border-radius:6px;padding:4px 6px;font:inherit;font-size:11.5px;background:#fff;color:var(--eo-ink)}
+.eo-kb-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px 4px;margin-top:8px}
+.eo-kb-cell{position:relative;display:flex;flex-direction:column;align-items:center;gap:7px;padding:12px 6px 9px;border:1px solid transparent;border-radius:10px;cursor:pointer;text-align:center;user-select:none}
+.eo-kb-cell:hover{background:var(--eo-hover)}
+.eo-kb-cell.on{background:rgba(217,119,87,.10);border-color:rgba(217,119,87,.28)}
+.eo-kb-cell:focus-visible{outline:2px solid var(--eo-accent);outline-offset:1px}
+.eo-kb-folder-icon{position:relative;width:58px;height:44px;border-radius:6px;background:linear-gradient(180deg,#93d4f8,#4ea9e2);box-shadow:inset 0 -12px 16px rgba(255,255,255,.16),0 1px 2px rgba(20,20,19,.12)}
+.eo-kb-folder-icon:before{content:"";position:absolute;left:0;top:-6px;width:26px;height:10px;border-radius:5px 5px 0 0;background:#a6dcf9}
+.eo-kb-file-tile{position:relative;width:44px;height:56px;border-radius:5px;background:#fff;border:1px solid #E1E0DB;box-shadow:0 1px 2px rgba(20,20,19,.08);display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px}
+.eo-kb-file-tile em{font-style:normal;font-size:8px;font-weight:700;letter-spacing:.03em;color:#8A857C}
+.eo-kb-file-tile.pdf{background:#FFF7F5;border-color:#F2CEC7}.eo-kb-file-tile.pdf em{color:#C0392B}
+.eo-kb-file-tile.doc{background:#F5F8FF;border-color:#D6E2F6}.eo-kb-file-tile.doc em{color:#2E6BC4}
+.eo-kb-file-tile.sheet{background:#F3FAF4;border-color:#CFE8D3}.eo-kb-file-tile.sheet em{color:#1F8A44}
+.eo-kb-file-tile.slides{background:#FFF8F1;border-color:#F3DFC7}.eo-kb-file-tile.slides em{color:#B4651A}
+.eo-kb-file-tile.code{background:#F7F5FF;border-color:#DED6F5}.eo-kb-file-tile.code em{color:#6B4BC4}
+.eo-kb-file-tile.image{background:#F6F6F4}.eo-kb-file-tile.image em{color:#6E6A60}
+.eo-kb-name{font-size:11.5px;line-height:1.4;color:var(--eo-ink);max-width:100%;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;word-break:break-word}
+.eo-kb-cell-sub{font-size:10px;color:#91888A;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eo-kb-cell-tools{position:absolute;top:4px;right:4px;display:flex;gap:2px;opacity:0;transition:opacity .12s}
+.eo-kb-cell:hover .eo-kb-cell-tools,.eo-kb-cell:focus-within .eo-kb-cell-tools{opacity:1}
+.eo-kb-tool{border:0;background:rgba(255,255,255,.94);border-radius:5px;width:18px;height:18px;line-height:1;font-size:10px;color:#6E6A60;cursor:pointer;padding:0;box-shadow:0 1px 2px rgba(20,20,19,.12)}
+.eo-kb-tool:hover{background:#141413;color:#fff}
+.eo-kb-rename{width:92px;font:inherit;font-size:11.5px;text-align:center;border:1px solid var(--eo-accent);border-radius:5px;padding:2px 4px;background:#fff;color:var(--eo-ink)}
+.eo-kb-root-drop{margin-top:10px;border:1px dashed var(--eo-line);border-radius:8px;padding:10px;text-align:center;font-size:11.5px;color:#91888A}
 .eo-kb-citation{margin-top:10px;border-left:2px solid #c7d7fe;padding-left:9px}
 .eo-kb-citation blockquote{margin:0;font-size:12px;line-height:1.7}
-.eo-kb-source{font-size:11px;line-height:1.6;text-align:left;color:#2563eb;border:0;background:transparent;padding:5px 0;cursor:pointer;overflow-wrap:anywhere}
+.eo-kb-source{font-size:11px;line-height:1.6;text-align:left;color:#D97757;border:0;background:transparent;padding:5px 0;cursor:pointer;overflow-wrap:anywhere}
 .eo-kb-source:disabled,.eo-send:disabled{opacity:.45;cursor:default}
 .eo-knowledge .eo-upload{container-type:inline-size}
 .eo-library{container-type:inline-size}
 .eo-library-toolbar{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px}
 .eo-library-toolbar h3{margin:0;font-size:14px}
-.eo-library-toolbar p{font-size:11.5px;color:#6b7280;margin:5px 0 0;line-height:1.7}
+.eo-library-toolbar p{font-size:11.5px;color:#6E6A60;margin:5px 0 0;line-height:1.7}
 .eo-library-toolbar>.eo-tag{white-space:nowrap}
 .eo-library-filters{display:flex;gap:8px;flex-wrap:wrap}
-.eo-library-filters input,.eo-library-filters select{min-width:0;border:1px solid #e0e5ed;background:#fff;border-radius:7px;padding:7px 9px;font:12px/1.5 inherit;color:#374151}
+.eo-library-filters input,.eo-library-filters select{min-width:0;border:1px solid #e0e5ed;background:#fff;border-radius:7px;padding:7px 9px;font:12px/1.5 inherit;color:#2C2A27}
 .eo-library-filters input{flex:1;min-width:150px}
-.eo-library-count{font-size:11px;color:#9ca3af;margin:10px 0}
+.eo-library-count{font-size:11px;color:#91888A;margin:10px 0}
 .eo-library-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .eo-library-card{display:block;text-align:left;padding:12px;color:inherit;font:inherit;cursor:pointer;box-shadow:0 1px 2px #10182808}
 .eo-library-card:hover,.eo-library-card.on{border-color:#9bbdf7;background:#f8fbff}
 .eo-library-card-head{display:flex;align-items:center;gap:8px}
 .eo-library-card-head b{font-size:13px}
 .eo-library-card-head>.eo-tag{margin-left:auto;white-space:nowrap}
-.eo-library-basics{font-size:11.5px;color:#6b7280;margin:9px 0}
-.eo-library-projects{display:flex;gap:4px;flex-wrap:wrap;font-size:11px;color:#4b5563;overflow-wrap:anywhere}
-.eo-library-projects span{background:#f3f4f6;border-radius:4px;padding:3px 6px}
-.eo-library-card-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #eef0f3;margin-top:10px;padding-top:8px;font-size:10px;color:#9ca3af}
+.eo-library-basics{font-size:11.5px;color:#6E6A60;margin:9px 0}
+.eo-library-projects{display:flex;gap:4px;flex-wrap:wrap;font-size:11px;color:#6E6A60;overflow-wrap:anywhere}
+.eo-library-projects span{background:#F1F1F0;border-radius:4px;padding:3px 6px}
+.eo-library-card-foot{display:flex;justify-content:space-between;align-items:center;gap:8px;border-top:1px solid #eef0f3;margin-top:10px;padding-top:8px;font-size:10px;color:#91888A}
 .eo-library-state{border-radius:4px;padding:2px 6px;white-space:nowrap}
 .eo-library-state.A{color:#047857;background:#ecfdf5}.eo-library-state.B{color:#b45309;background:#fffbeb}.eo-library-state.C{color:#b91c1c;background:#fef2f2}
-.eo-library-detail h3{font-size:13px;margin:10px 0}.eo-library-detail small{font-size:10px;color:#9ca3af}
+.eo-library-detail h3{font-size:13px;margin:10px 0}.eo-library-detail small{font-size:10px;color:#91888A}
 .eo-library-detail dd{margin:0}.eo-library-detail dl{margin:12px 0 20px}
 .eo-library-history{margin-bottom:8px;font-size:12px;overflow-wrap:anywhere}
-.eo-library-history p,.eo-library-empty p{color:#6b7280;font-size:11.5px}
+.eo-library-history p,.eo-library-empty p{color:#6E6A60;font-size:11.5px}
 @container(max-width:480px){.eo-library-grid{grid-template-columns:minmax(0,1fr)}}
 /* 看板 */
 .eo-filters{display:flex;gap:7px;align-items:center;flex-wrap:wrap;margin-bottom:11px}
-.eo-chip{border:1px solid #e6e8ec;background:#fff;border-radius:999px;padding:3px 10px;font-size:11.6px;color:#4b5563;cursor:pointer}
-.eo-chip.on{background:#eef4ff;border-color:#c7d7fe;color:#2563eb}
+.eo-chip{border:1px solid var(--eo-line);background:#fff;border-radius:999px;padding:3px 10px;font-size:11.6px;color:#6E6A60;cursor:pointer}
+.eo-chip.on{background:#F1F1F0;border-color:#c7d7fe;color:#D97757}
 .eo-board{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:start}
-.eo-col{border:1px solid #e6e8ec;border-radius:12px;padding:8px;min-height:360px;background:#f2f4f7}
+.eo-col{border:1px solid var(--eo-line);border-radius:12px;padding:8px;min-height:360px;background:#f2f4f7}
 .eo-col.a{background:#ecfdf5;border-color:#d7f0e4}
 .eo-col.b{background:#fffbeb;border-color:#fbe8c4}
 .eo-colhead{display:flex;align-items:center;gap:7px;padding:3px 4px 8px;font-size:12.3px;font-weight:650}
-.eo-coldot{width:7px;height:7px;border-radius:50%;background:#9ca3af}
+.eo-coldot{width:7px;height:7px;border-radius:50%;background:#91888A}
 .eo-col.a .eo-coldot{background:#059669}.eo-col.b .eo-coldot{background:#f59e0b}
-.eo-cnt{color:#6b7280;font-weight:500}
-.eo-expert{background:#fff;border:1px solid #e6e8ec;border-radius:9px;padding:8px 10px;margin-bottom:7px;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
+.eo-cnt{color:#6E6A60;font-weight:500}
+.eo-expert{background:#fff;border:1px solid var(--eo-line);border-radius:9px;padding:8px 10px;margin-bottom:7px;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease}
 .eo-expert:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(16,24,40,.08);border-color:#d3d9e2}
 .eo-exhead{display:flex;align-items:center;gap:7px}
 .eo-exname{font-weight:620;font-size:12.6px}
-.eo-score{margin-left:auto;font-size:11.3px;font-weight:700;color:#1d4ed8;background:#eef4ff;padding:1px 6px;border-radius:5px}
-.eo-expert.excluded .eo-score{color:#6b7280;background:#f3f4f6}
-.eo-exmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;color:#6b7280;font-size:10.8px;margin-top:3px}
+.eo-score{margin-left:auto;font-size:11.3px;font-weight:700;color:#B4623E;background:#F1F1F0;padding:1px 6px;border-radius:5px}
+.eo-expert.excluded .eo-score{color:#6E6A60;background:#F1F1F0}
+.eo-exmeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;color:#6E6A60;font-size:10.8px;margin-top:3px}
 .eo-src{font-size:10px;padding:1px 5px;border-radius:4px;background:#eef2ff;color:#4338ca}
 .eo-src.fs{background:#ecfdf5;color:#047857}.eo-src.man{background:#fef3c7;color:#92400e}
-.eo-why{margin-top:4px;font-size:11.2px;color:#4b5563;line-height:1.5}
+.eo-why{margin-top:4px;font-size:11.2px;color:#6E6A60;line-height:1.5}
 .eo-why.gap{color:#b45309}
 /* Native DSH conversation: only container sizing, no host CSS class overrides. */
 
-.eo-project-layout{grid-template-columns:minmax(0,calc(100% - var(--eo-panel-width))) minmax(0,var(--eo-panel-width));background:#fafbfc;overflow:hidden;transition:grid-template-columns .28s cubic-bezier(.2,.8,.2,1)}
+.eo-project-layout{grid-template-columns:minmax(0,calc(100% - var(--eo-panel-width))) minmax(0,var(--eo-panel-width));background:var(--eo-page);overflow:hidden;transition:grid-template-columns .28s cubic-bezier(.2,.8,.2,1)}
 .eo-project-layout>.eo-agent{border:0;background:transparent;width:100%;max-width:880px;margin:0 auto;padding:0 20px 14px;overflow:hidden;box-sizing:border-box}
 .eo-project-layout.panel-open>.eo-agent{padding:0 12px 10px}
 .eo-project-layout .eo-ahead,.eo-project-layout .eo-chat-context{display:none}
-.eo-business-panel{min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;background:#f7f8fa;border-left:1px solid #e2e5eb;opacity:0;visibility:hidden;transform:translateX(24px);transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s,visibility .28s;box-shadow:-5px 0 18px #18253b05}
+.eo-business-panel{min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;background:var(--eo-page);border-left:1px solid #e2e5eb;opacity:0;visibility:hidden;transform:translateX(24px);transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s,visibility .28s;box-shadow:-5px 0 18px #18253b05}
 .panel-open>.eo-business-panel{opacity:1;visibility:visible;transform:translateX(0)}
-.eo-panel-header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;background:#fff;border-bottom:1px solid #e6e8ec;flex-shrink:0;white-space:nowrap}
-.eo-panel-header h2{font-size:13px;font-weight:600;margin:0}
+.eo-panel-header{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--eo-line);flex-shrink:0;white-space:nowrap}
+.eo-panel-header h2{font-size:13px;font-weight:600;margin:0;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .eo-panel-close{display:grid;place-items:center;border:0;border-radius:6px;background:transparent;color:#79818e;font-size:22px;width:26px;height:26px;cursor:pointer;line-height:1}
 .eo-panel-close:hover{background:#f0f2f5;color:#1f2937}
-.eo-panel-close:focus-visible,.eo-panel-resizer:focus-visible{outline:2px solid #2563eb;outline-offset:-2px}
-.eo-panel-actions{display:flex;justify-content:flex-end;gap:6px;padding:8px 12px 0;flex-wrap:wrap}.eo-panel-actions .eo-btn{font-size:11px;padding:5px 9px}
+.eo-panel-close:focus-visible,.eo-panel-resizer:focus-visible{outline:2px solid var(--eo-accent);outline-offset:-2px}
+.eo-panel-head-actions{display:flex;align-items:center;gap:6px;flex-shrink:0}.eo-panel-head-actions .eo-btn{font-size:11px;padding:4px 9px;line-height:1.5}.eo-panel-head-actions .eo-btn.primary{padding:4px 11px}
 .eo-panel-content{flex:1;min-height:0;padding:12px}
 .eo-panel-resizer{position:absolute;left:-4px;top:0;bottom:0;width:8px;z-index:10;cursor:col-resize;touch-action:none}
-.eo-panel-resizer:hover,.eo-panel-resizer:focus-visible{background:#2563eb22}
+.eo-panel-resizer:hover,.eo-panel-resizer:focus-visible{background:#D9775733}
 .eo-project-layout.is-resizing{transition:none;user-select:none;cursor:col-resize}
 .eo-project-layout.is-resizing>.eo-business-panel{transition:none}
 @media(prefers-reduced-motion:reduce){.eo-project-layout,.eo-business-panel{transition:none}}
 .eo-project-layout [data-conversation-scroll]:has(.eo-home-welcome){position:relative}
 .eo-home-welcome{position:absolute;top:0;left:0;right:0;height:max(0px,calc(100% - var(--dsh-composer-height,180px)));display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:16px;text-align:center;box-sizing:border-box;pointer-events:none}
 .eo-home-welcome h2{font-size:clamp(24px,2.3vw,32px);font-weight:650;line-height:1.4;margin:0 0 14px;color:#1f2937}
-.eo-home-welcome p{font-size:16px;line-height:1.6;color:#6b7280;margin:0}
-.eo-home-welcome .eo-home-cards{justify-content:center;width:100%;max-width:360px;gap:12px;margin:24px auto 0;pointer-events:auto}
+.eo-home-welcome p{font-size:16px;line-height:1.6;color:#6E6A60;margin:0}
+.eo-home-welcome .eo-home-cards{justify-content:center;width:100%;max-width:268px;gap:12px;margin:24px auto 0;pointer-events:auto}
 .eo-home-welcome .eo-home-card{flex:1 1 0;min-width:0;min-height:44px;box-sizing:border-box;justify-content:center;text-align:center;padding:9px 12px;border-radius:18px}
 .eo-home-welcome .eo-home-card strong{font-size:13px}
 
 .eo-home-dock{padding:0 var(--dsh-composer-side-clearance,16px)}
 .eo-home-cards{box-sizing:border-box;display:flex;flex-wrap:wrap;gap:8px;width:100%;max-width:var(--dsh-composer-card-max-width,100%);margin:0 auto;padding:0 0 4px;flex-shrink:0}
-.eo-home-card{display:inline-flex;align-items:center;justify-content:center;min-width:142px;min-height:34px;box-sizing:border-box;gap:7px;text-align:left;border:1px solid #e2e5e9;border-radius:16px;padding:7px 12px;background:rgba(255,255,255,.88);color:#596273;cursor:pointer;transition:border-color .15s,background .15s}
-.eo-home-card[aria-pressed="true"]{background:#edf3ff;border-color:#b9cdf1;color:#285d9e}
-.eo-home-card:hover{border-color:#9bb9f4;background:#f5f8ff}
-.eo-home-card:focus-visible{outline:2px solid #2563eb;outline-offset:2px}
+.eo-home-card{display:inline-flex;align-items:center;justify-content:center;width:112px;min-width:112px;min-height:34px;box-sizing:border-box;gap:7px;text-align:left;border:1px solid #e2e5e9;border-radius:16px;padding:7px 12px;background:rgba(255,255,255,.88);color:#596273;cursor:pointer;transition:border-color .15s,background .15s}
+.eo-home-card[aria-pressed="true"]{background:var(--eo-selected);border-color:#d8d7d2;color:var(--eo-ink)}
+.eo-home-card[aria-pressed="true"] .eo-home-card-icon{color:inherit}
+.eo-home-card:hover{border-color:#d8d7d2;background:var(--eo-hover)}
+.eo-home-card:focus-visible{outline:2px solid var(--eo-accent);outline-offset:2px}
 .eo-home-card-icon{color:#7c8799;font-size:14px;line-height:1;flex-shrink:0}
 .eo-home-card strong{display:block;font-size:12px;font-weight:500}
 .eo-home-card small{display:none}
@@ -323,47 +364,96 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-native-chat{flex:1;min-height:0;min-width:0;display:flex;flex-direction:column;overflow:hidden}
 .eo-native-chat > div{min-height:0;flex:1}
 .eo-native-chat [data-composer-seat]{margin-top:auto;flex-shrink:0;bottom:0;--dsh-composer-text-max-height:180px}
-.eo-project-layout .eo-native-chat [data-composer-seat]{padding-top:28px;background:linear-gradient(180deg,rgba(250,251,252,0) 0px,rgba(250,251,252,.85) 24px,#fafbfc 54px);}
-.eo-chat-context{padding:6px 13px;border-bottom:1px solid #eef0f3;color:#6b7280;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.eo-chat-state{padding:20px 14px;font-size:12px;color:#6b7280;overflow-wrap:anywhere}
+.eo-project-layout .eo-native-chat [data-composer-seat]{padding-top:28px;background:linear-gradient(180deg,rgba(250,250,249,0) 0px,rgba(250,250,249,.85) 24px,var(--eo-page) 54px);}
+.eo-chat-context{padding:6px 13px;border-bottom:1px solid #eef0f3;color:#6E6A60;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.eo-chat-state{padding:20px 14px;font-size:12px;color:#6E6A60;overflow-wrap:anywhere}
 .eo-agent{min-width:0}
 /* Agent */
-.eo-agent{border-left:1px solid #e6e8ec;background:#fff;display:flex;flex-direction:column;min-height:0}
+.eo-agent{border-left:1px solid var(--eo-line);background:#fff;display:flex;flex-direction:column;min-height:0}
 .eo-ahead{display:flex;align-items:center;gap:8px;padding:11px 13px;border-bottom:1px solid #eef0f3;font-size:12.5px;font-weight:620}
 .eo-ahead .st{margin-left:auto;font-size:10.8px;color:#059669;display:flex;align-items:center;gap:5px;font-weight:500}
 .eo-ahead .st i{width:6px;height:6px;border-radius:50%;background:#059669;display:block}
 .eo-thread{flex:1;overflow:auto;padding:13px;display:flex;flex-direction:column;gap:11px}
 .eo-msg{font-size:12.4px;line-height:1.62}
-.eo-who{font-size:10.8px;color:#9ca3af;margin-bottom:3px}
+.eo-who{font-size:10.8px;color:#91888A;margin-bottom:3px}
 .eo-bubble{background:#f5f6f8;border-radius:10px;padding:8px 10px;white-space:pre-wrap}
-.eo-msg.you .eo-bubble{background:#eef4ff}
-.eo-run{border:1px solid #e6e8ec;border-radius:10px;overflow:hidden}
-.eo-run .rt{display:flex;align-items:center;gap:7px;padding:7px 10px;background:#fafbfc;border-bottom:1px solid #eef0f3;font-size:11.6px;color:#374151}
+.eo-msg.you .eo-bubble{background:#F1F1F0}
+.eo-run{border:1px solid var(--eo-line);border-radius:10px;overflow:hidden}
+.eo-run .rt{display:flex;align-items:center;gap:7px;padding:7px 10px;background:var(--eo-page);border-bottom:1px solid #eef0f3;font-size:11.6px;color:#2C2A27}
 .eo-run code{font:11.4px ui-monospace,SFMono-Regular,Menlo,monospace;background:#eef1f5;padding:1px 5px;border-radius:4px}
-.eo-run .rb{padding:7px 10px;color:#6b7280;font-size:11.3px}
-.eo-run .rb b{color:#15171c}
+.eo-run .rb{padding:7px 10px;color:#6E6A60;font-size:11.3px}
+.eo-run .rb b{color:#141413}
 .eo-ok{color:#059669;font-weight:700}
 .eo-quick{display:flex;gap:6px;flex-wrap:wrap;padding:0 13px 9px}
-.eo-quick button{border:1px solid #e6e8ec;background:#fff;border-radius:999px;padding:4px 9px;font-size:11.2px;color:#4b5563;cursor:pointer}
-.eo-quick button:hover{border-color:#c7d7fe;color:#2563eb;background:#eef4ff}
+.eo-quick button{border:1px solid var(--eo-line);background:#fff;border-radius:999px;padding:4px 9px;font-size:11.2px;color:#6E6A60;cursor:pointer}
+.eo-quick button:hover{border-color:#c7d7fe;color:#D97757;background:#F1F1F0}
 .eo-composer{border-top:1px solid #eef0f3;padding:9px 11px}
-.eo-box{border:1px solid #e6e8ec;border-radius:10px;padding:7px 9px;display:flex;gap:8px;align-items:flex-end}
+.eo-box{border:1px solid var(--eo-line);border-radius:10px;padding:7px 9px;display:flex;gap:8px;align-items:flex-end}
 .eo-box textarea{border:0;outline:0;resize:none;flex:1;font:12.4px/1.6 inherit;height:36px;background:transparent;color:inherit}
-.eo-send{border:0;background:#2563eb;color:#fff;border-radius:7px;width:27px;height:27px;display:grid;place-items:center;cursor:pointer}
+.eo-send{border:0;background:#D97757;color:#fff;border-radius:7px;width:27px;height:27px;display:grid;place-items:center;cursor:pointer}
 /* 抽屉 */
 .eo-dw{position:absolute;inset:0;background:rgba(17,24,39,.26)}
 .eo-drawer{position:absolute;right:0;top:0;bottom:0;width:420px;background:#fff;box-shadow:-10px 0 32px rgba(16,24,40,.16);padding:16px 18px;overflow:auto}
 .eo-drawer h2{font-size:15.5px;margin:0 0 2px}
-.eo-x{position:absolute;right:12px;top:10px;border:0;background:#f3f4f6;width:26px;height:26px;border-radius:7px;color:#6b7280;cursor:pointer}
+.eo-x{position:absolute;right:12px;top:10px;border:0;background:#F1F1F0;width:26px;height:26px;border-radius:7px;color:#6E6A60;cursor:pointer}
 .eo-dim{margin:8px 0}
-.eo-dim .r{display:flex;justify-content:space-between;font-size:12px;color:#374151}
+.eo-dim .r{display:flex;justify-content:space-between;font-size:12px;color:#2C2A27}
 .eo-bar{height:6px;background:#eef0f3;border-radius:99px;overflow:hidden;margin-top:4px}
-.eo-bar i{display:block;height:100%;background:linear-gradient(90deg,#93b4fd,#2563eb)}
+.eo-bar i{display:block;height:100%;background:linear-gradient(90deg,#93b4fd,#D97757)}
 .eo-dwacts{display:flex;gap:7px;margin-top:15px}
 .eo-btn.g{background:#ecfdf5;border-color:#a7f3d0;color:#047857}
 .eo-btn.y{background:#fffbeb;border-color:#fde68a;color:#b45309}
 .eo-btn.r{background:#fef2f2;border-color:#fecaca;color:#b91c1c}
 .eo-toast{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);background:#111827;color:#fff;font-size:12.2px;padding:7px 14px;border-radius:8px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+/* Warm neutral theme is scoped to this workspace, including native chat descendants. */
+.eo-native-chat{--dsw-alias-bg-base:var(--eo-page);--dsw-alias-bg-module-platform:var(--eo-page);--dsw-specific-input-major:#fff;--dsw-alias-state-business-primary:var(--eo-accent);--dsw-alias-state-business-tertiary:var(--eo-selected);--dsw-alias-button-info-fill:var(--eo-accent);--dsw-alias-button-info-hover:#C4603C;--dsw-focus-ring-color:var(--eo-accent);--dsw-alias-label-primary-bluish:var(--eo-ink)}
+.eo-head,.eo-panel-header{background:var(--eo-page)}
+.eo-home-card{color:#68635c;border-color:var(--eo-line)}
+.eo-home-welcome h2{color:var(--eo-ink)}
+.eo-home-welcome p{color:var(--eo-muted)}
+.eo-card{box-shadow:0 1px 3px #14141306}
+
+
+.eo-role-list-head,.eo-role-detail-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.eo-role-list-head h3,.eo-role-detail-head h3{margin:0;color:var(--eo-ink);font-size:16px}
+.eo-role-list-head p,.eo-role-detail-head span{margin:5px 0 0;color:#868079;font-size:11px;line-height:1.6}
+.eo-role-detail-head>div{flex:1;min-width:0}.eo-role-detail-head h3{overflow-wrap:anywhere}
+.eo-role-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:12px}
+.eo-role-card{display:flex;flex-direction:column;position:relative;overflow:hidden;transition:border-color .15s,box-shadow .15s}
+.eo-role-card:hover{border-color:var(--eo-accent);box-shadow:0 3px 12px #24242008}
+.eo-role-open{display:flex;flex:1;flex-direction:column;width:100%;text-align:left;background:none;border:0;color:inherit;font:inherit;cursor:pointer;padding:18px;min-height:190px}
+.eo-role-open:focus-visible{outline:2px solid var(--eo-accent);outline-offset:-3px}
+.eo-role-card-top{display:flex;align-items:center;gap:10px;font-size:11px;color:#91888A;margin-bottom:12px;padding-right:40px}
+.eo-role-open h3{font-size:15px;line-height:1.5;margin:0 0 7px;color:var(--eo-ink)}
+.eo-role-open p{font-size:12px;line-height:1.6;color:#77736C;margin:0 0 14px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.eo-role-card-meta{display:flex;gap:14px;font-size:11px;color:#868079;margin-top:auto;padding-bottom:12px}
+.eo-role-card-bottom{display:flex;justify-content:space-between;gap:8px;width:100%;border-top:1px solid var(--eo-line);padding-top:12px;font-size:11px;color:#77736C}
+.eo-role-card-bottom>span:last-child{color:var(--eo-accent)}
+.eo-role-confirm{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px;padding:10px 18px;border-top:1px solid var(--eo-line)}
+.eo-role-confirm>span{margin-right:auto;font-size:11px;color:#77736C}.eo-role-confirm>span.confirmed{color:#078566}
+.eo-role-confirm .eo-btn{font-size:12px;padding:6px 10px}.eo-role-confirm .eo-btn.primary:disabled{background:#F0F0EE;border-color:var(--eo-line);color:#9A9995;opacity:1;cursor:not-allowed}.eo-role-confirm-detail{margin-bottom:12px;background:white;border:1px solid var(--eo-line);border-radius:10px}
+.eo-role-delete{position:absolute;right:14px;top:18px;background:none;border:0;color:#868079;font:inherit;font-size:11px;cursor:pointer;padding:3px}
+.eo-role-delete:hover{color:#B34337}.eo-role-note{font-size:10.5px;color:#91888A;line-height:1.6;margin:12px 0 0}
+.eo-role-add{display:flex;gap:8px;align-items:flex-end;margin-bottom:12px}.eo-role-add label{display:grid;gap:6px;flex:1;font-size:12px}
+.eo-role-add input{min-width:0;border:1px solid var(--eo-line);border-radius:7px;padding:8px;font:inherit;background:white}
+.eo-role-empty{text-align:center;color:#868079}.eo-pool-role{font-size:11px!important;color:#847362!important;overflow-wrap:anywhere}
+.eo-match-role-card .eo-role-open{min-height:174px}
+.eo-match-role-card .eo-role-card-top{justify-content:space-between;padding-right:0}
+.eo-match-metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));width:100%;gap:8px;margin:8px 0 14px;font-size:11px}
+.eo-match-metrics span{display:grid;gap:5px;align-content:start;padding:10px 8px;border-radius:8px;background:#F2F2F0;color:#67645F}
+.eo-match-metrics span:nth-child(2){background:#FFF4E5;color:#925C21}
+.eo-match-metrics span:nth-child(3){background:#EAF5EF;color:#387559}
+.eo-match-metrics strong{font-size:24px;line-height:1.2;color:inherit;font-weight:600}
+.eo-match-unread{color:#B34337;background:#FFF1F0;border-radius:5px;padding:2px 6px}
+.eo-match-detail-head{flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.eo-match-detail-head>.eo-match-heading{flex:1 1 180px}
+.eo-match-detail-head h3{font-size:14px;line-height:1.45}
+.eo-match-detail-head>.eo-match-actions{display:flex;flex:0 0 auto;justify-content:flex-end;gap:6px;margin-left:auto}
+.eo-match-detail-head .eo-btn{white-space:nowrap}
+.eo-match-archive{margin-top:20px;border-top:1px solid var(--eo-line);padding-top:14px}
+.eo-match-archive summary{cursor:pointer;color:#868079;font-size:12px;margin-bottom:12px}
+.eo-match-history-note{padding:12px;background:#F4F4F2;border-radius:8px;font-size:12px;line-height:1.7;color:#77736C}
+.eo-pool-row.history{grid-template-columns:minmax(0,1fr) auto}
 `
 
   // ---------------- mock 数据 ----------------
@@ -454,6 +544,15 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     { name: "郑*", src: "飞书", city: "西安", years: 2, rate: 140, score: 35, bucket: "C", why: "方言不符（仅普通话）", gap: "硬门槛未通过" },
   ]
 
+  const KB_META_KEY = "eo-kb-meta-v1"
+  function loadKbMeta() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(KB_META_KEY) || "{}") || {}
+      return { folders: Array.isArray(raw.folders) ? raw.folders : [], docs: raw.docs && typeof raw.docs === "object" ? raw.docs : {}, hidden: Array.isArray(raw.hidden) ? raw.hidden : [] }
+    } catch (_) { return { folders: [], docs: {}, hidden: [] } }
+  }
+  function persistKbMeta(meta) { try { localStorage.setItem(KB_META_KEY, JSON.stringify(meta)) } catch (_) { /* quota or private mode */ } }
+
   // ---------------- 极简 store ----------------
   const store = {
     open: false,
@@ -464,6 +563,8 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     knowledgeSelected: null,
     knowledgeMessages: [],
     knowledgeDraft: "",
+    kbMeta: loadKbMeta(),
+    kbFolderId: null,
     libraryQuery: "",
     librarySource: "all",
     libraryStatus: "all",
@@ -473,6 +574,7 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     documents: {},
     artifactDrafts: {},
     artifactRevision: 0,
+    featureRole: null,
     candidateReceipts: loadCandidateReceipts(),
     projects: loadProjects(),
     showEnded: false,
@@ -515,7 +617,7 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     const projects = [...store.projects, project]
     // Persist the project before opening its conversation; failed storage must not create an orphan.
     persistProjects(projects)
-    set({ projects, demand: project.id, expandedDemand: project.id, nav: "project", tab: "home", drawer: null })
+    set({ projects, demand: project.id, expandedDemand: null, nav: "project", tab: "home", drawer: null })
     return project
   }
 
@@ -623,7 +725,7 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       n("div", { className: "eo-shell" },
         // 左栏
         n("aside", { className: "eo-left" },
-          n("div", { className: "eo-brand" }, n("span", { className: "dot" }), "专家运营", n("small", null, "原识 × DSH")),
+          n("div", { className: "eo-brand" }, n("span", { className: "dot" }), "专家运营"),
           n("div", { className: "eo-nav" },
             [["knowledge", "知识库"], ["experts", "专家库"], ["settings", "设置"]].map(([id, label]) =>
               n("button", { key: id, className: s.nav === id ? "on" : "", onClick: () => set({ nav: id, drawer: null }) },
@@ -634,7 +736,10 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
         n("main", { className: "eo-right" },
           n("header", { className: "eo-head" },
             n("div", { className: "eo-htop" },
-              n("h1", null, knowledge ? "知识库" : library ? "专家库" : active?.title || "暂无项目"))),
+              n("h1", null, projectMode && active
+                ? n("button", { className: "eo-title-btn", type: "button", title: "打开项目业务面板",
+                    onClick: () => openProjectSpace(active.id, lastFeature.current) }, active.title)
+                : (knowledge ? "知识库" : library ? "专家库" : active?.title || "暂无项目")))),
           n("div", { ref: bodyRef, className: "eo-body" + (projectMode ? " eo-project-layout" + (panelOpen ? " panel-open" : "") + (resizing ? " is-resizing" : "") : ""),
             style: projectMode ? { "--eo-panel-width": panelOpen ? panelWidth + "%" : "0%" } : undefined },
             projectMode ? n(AgentPanel, { key: active?.id || "none", project: active, home: true, panelOpen, sessions, SessionProvider, renderSlot }) :
@@ -650,13 +755,9 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
               n("header", { className: "eo-panel-header" },
                 n("h2", null, featureTitle),
                 n("button", { className: "eo-panel-close", title: "关闭业务面板", "aria-label": "关闭业务面板", onClick: () => { openProjectSpace(active.id, "home"); bodyRef.current?.querySelector('.eo-home-card')?.focus() } }, "×")),
-              feature === "p3" ? n("div", { className: "eo-panel-actions" },
-                n("button", { className: "eo-btn", onClick: () => toast("导出 mock 名单（M3 接飞书表格）") }, "导出名单"),
-                n("button", { className: "eo-btn", onClick: () => toast("已生成分享链接（示意）") }, "分享"),
-                n("button", { className: "eo-btn primary", onClick: () => toast("已触发 expert_match（mock，3.2s）") }, "重新匹配")) : null,
               n("div", { className: "eo-canvas eo-panel-content" },
                 active ? n("div", { hidden: feature !== "recruitment" }, n(RecruitmentView, { key: active.id, demandId: active.id, result: recruitment })) : null,
-                active ? n("div", { hidden: feature !== "p3" }, n(BoardView, { key: active.id, projectId: active.id, experts: projectExperts })) : null)) :
+                active ? n("div", { hidden: feature !== "p3" }, n(MatchingView, { key: active.id, projectId: active.id, experts: projectExperts })) : null)) :
               knowledge ? n(KnowledgeAgent) : n(ExpertLibraryPanel)),
           s.drawer ? n(Drawer, { expert: s.drawer }) : null,
           s.toast ? n("div", { className: "eo-toast" }, s.toast) : null)))
@@ -706,20 +807,28 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       else updateProject(target.id, action === 'pin' ? { pinned: !target.pinned } : { ended: !target.ended })
     }
     function row(d) {
-      return n("div", { key: d.id, className: "eo-project-item" },
+      const expanded = s.expandedDemand === d.id
+      return n("div", { key: d.id, className: "eo-project-item" + (expanded ? " expanded" : "") },
         n("button", {
           className: "eo-demand" + (d.id === s.demand ? " on" : ""),
-          title: d.title, "aria-expanded": s.expandedDemand === d.id,
-          "aria-controls": "eo-project-menu-" + d.id,
+          title: d.title,
           onContextMenu: (event) => openMenu(event, d),
           onKeyDown: (event) => {
             if (event.key === 'ContextMenu' || (event.shiftKey && event.key === 'F10')) openMenu(event, d, true)
           },
           onClick: () => openProjectSpace(d.id, "home"),
         }, n("b", null, d.title),
-          n("i", { className: "eo-demand-chevron", "aria-hidden": true }, "▸"),
           n("span", null, n("i", { className: "eo-sdot " + (d.ended ? "draft" : d.dot) }),
             (d.pinned ? "置顶 · " : "") + (d.ended ? "已结束" : d.state) + " · " + d.count + " 人")),
+        n("button", { className: "eo-demand-chevron", type: "button",
+          "aria-expanded": expanded, "aria-controls": "eo-project-menu-" + d.id,
+          title: expanded ? "收起功能" : "展开功能", "aria-label": (expanded ? "收起 " : "展开 ") + d.title + " 的功能",
+          onClick: (event) => { event.stopPropagation(); set({ expandedDemand: expanded ? null : d.id }) },
+          onKeyDown: (event) => {
+            if (event.key !== 'Enter' && event.key !== ' ') return
+            event.preventDefault(); event.stopPropagation()
+            set({ expandedDemand: expanded ? null : d.id })
+          } }, "▸"),
         n("button", { className: "eo-project-more", "aria-label": d.title + "项目选项", title: "项目选项（也可右键）",
           onClick: (event) => openMenu(event, d, true) }, "⋯"),
         n("div", { id: "eo-project-menu-" + d.id, hidden: s.expandedDemand !== d.id },
@@ -822,10 +931,11 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     }
     return result
   }
-  function saveArtifact(projectId, kind, labels, draft) {
+  function saveArtifact(projectId, kind, labels, draft, roleId = null) {
     const values = normalizeArtifact(labels, draft)
-    localStorage.setItem(artifactKey(projectId, kind), JSON.stringify({ values, updatedAt: new Date().toISOString(), origin: "manual" }))
-    const drafts = { ...store.artifactDrafts }; delete drafts[projectId + ":" + kind]
+    if (roleId) updateRole(projectId, roleId, { [kind]: values })
+    else localStorage.setItem(artifactKey(projectId, kind), JSON.stringify({ values, updatedAt: new Date().toISOString(), origin: "manual" }))
+    const drafts = { ...store.artifactDrafts }; delete drafts[roleScope(projectId, roleId) + ":" + kind]
     set({ artifactDrafts: drafts, artifactRevision: store.artifactRevision + 1 })
   }
 
@@ -857,7 +967,12 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     return { schemaVersion: 2, missingPolicy: "needs_verification", conditions,
       legacyOther: typeof model.legacyOther === "string" ? model.legacyOther : "" }
   }
-  function loadProfile(projectId) {
+  function loadProfile(projectId, roleId = null) {
+    if (roleId) {
+      const role = loadRoles(projectId).find((r) => r.id === roleId)
+      if (!role) throw new Error("画像不存在")
+      return normalizeProfile(role.profile)
+    }
     const saved = localStorage.getItem(profileKey(projectId))
     if (saved) return normalizeProfile(JSON.parse(saved))
     const legacy = JSON.parse(localStorage.getItem(artifactKey(projectId, "profile")) || "null")
@@ -890,17 +1005,118 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     })
     return rows.length ? "专家画像\n\n" + rows.join("\n\n") : ""
   }
-  function saveProfile(projectId, draft) {
+  function saveProfile(projectId, draft, roleId = null) {
     const model = normalizeProfile(draft)
-    localStorage.setItem(profileKey(projectId), JSON.stringify({ ...model, updatedAt: new Date().toISOString(), origin: "manual" }))
-    const drafts = { ...store.artifactDrafts }; delete drafts[projectId + ":profile:v2"]
+    if (roleId) updateRole(projectId, roleId, { profile: model })
+    else localStorage.setItem(profileKey(projectId), JSON.stringify({ ...model, updatedAt: new Date().toISOString(), origin: "manual" }))
+    const drafts = { ...store.artifactDrafts }; delete drafts[roleScope(projectId, roleId) + ":profile:v2"]
     set({ artifactDrafts: drafts, artifactRevision: store.artifactRevision + 1 })
   }
-  function ProfileCriteriaCard({ demandId, embedded = false }) {
+  // A project owns several role profiles; each role owns exactly one JD.
+  const rolesKey = (projectId) => "dsh-expert-ops:roles:v1:" + projectId
+  const roleScope = (projectId, roleId) => roleId ? projectId + ":role:" + roleId : projectId
+  function loadRoles(projectId) {
+    const raw = localStorage.getItem(rolesKey(projectId))
+    if (raw !== null) {
+      const value = JSON.parse(raw)
+      if (!Array.isArray(value) || value.some((r) => !r || typeof r.id !== "string" || typeof r.name !== "string" || !r.profile || !r.jd))
+        throw new Error("画像列表读取失败，原有数据未被覆盖。")
+      if (new Set(value.map((r) => r.id)).size !== value.length) throw new Error("画像标识重复，请恢复数据后重试。")
+      return value.map((r) => ({ ...r, profile: normalizeProfile(r.profile), jd: normalizeArtifact(JD_FIELDS, r.jd) }))
+    }
+    const legacy = recruitmentResult(projectId)
+    if (!legacy) return []
+    const roles = [{ id: "main", name: legacy.jd?.职位名称 || "专家画像", profile: loadProfile(projectId),
+      jd: normalizeArtifact(JD_FIELDS, legacy.jd), source: legacy.source || null, origin: "legacy", deletedAt: null }]
+    if (projectId === "d1") roles.push({ id: "quality", name: "语音数据质检专家", origin: "sample", deletedAt: null,
+      profile: normalizeProfile({ conditions: { domain: { value: ["语音数据标注"] }, years: { value: 2 },
+        background: { value: "具备语音标注或质检相关背景。" }, experience: { value: "具备语音标注质检、抽检与问题复核经验。" },
+        abilities: { value: "能核对转写准确性、检查音频切分并说明质检问题。" } } }),
+      jd: normalizeArtifact(JD_FIELDS, { 职位名称: "语音数据质检专家", 岗位说明: "参与多语言语音数据项目的质量检查。",
+        所属领域: "语音数据标注", 岗位职责: "核对转写、切分成果，记录并复核问题。", 任职要求: "有语音标注或质检经验。",
+        核心能力: "质检抽检、问题复核、规范理解" }), source: legacy.source || null })
+    return roles
+  }
+  function persistRoles(projectId, roles) {
+    localStorage.setItem(rolesKey(projectId), JSON.stringify(roles))
+    set({ artifactRevision: store.artifactRevision + 1 })
+  }
+  function updateRole(projectId, roleId, patch) {
+    const roles = loadRoles(projectId)
+    if (!roles.some((r) => r.id === roleId && !r.deletedAt)) throw new Error("画像已删除或不存在，无法保存。")
+    persistRoles(projectId, roles.map((r) => {
+      if (r.id !== roleId) return r
+      const changed = patch.profile && profileFingerprint(patch.profile) !== profileFingerprint(r.profile)
+      return { ...r, ...patch, ...(changed ? { confirmedProfile: null, confirmedAt: null } : {}), updatedAt: new Date().toISOString() }
+    }))
+  }
+  function createRole(projectId, name) {
+    const clean = name.trim()
+    if (!clean || clean.length > 80) throw new Error("画像名称请填写 1–80 个字。")
+    const roles = loadRoles(projectId)
+    if (roles.some((r) => !r.deletedAt && r.name === clean)) throw new Error("当前项目已有同名画像，请换一个名称。")
+    const role = { id: "role-" + crypto.randomUUID(), name: clean, origin: "manual", deletedAt: null,
+      profile: normalizeProfile({ conditions: {} }), jd: normalizeArtifact(JD_FIELDS, { 职位名称: clean }), source: null }
+    persistRoles(projectId, [...roles, role]); return role.id
+  }
+  function deleteRole(projectId, roleId) {
+    updateRole(projectId, roleId, { deletedAt: new Date().toISOString() })
+    const drafts = { ...store.artifactDrafts }
+    delete drafts[roleScope(projectId, roleId) + ":profile:v2"]; delete drafts[roleScope(projectId, roleId) + ":jd"]
+    set({ artifactDrafts: drafts })
+  }
+  function candidateRoleId(expert, projectId) {
+    if (expert.roleByProject?.[projectId]) return expert.roleByProject[projectId]
+    // Explicit mock assignment, not an AI inference from an uploaded document.
+    return projectId === "d1" && ["demo-expert-02", "demo-expert-06"].includes(expert.id) ? "quality" : "main"
+  }
+
+  function profileFingerprint(profile) { return JSON.stringify(normalizeProfile(profile)) }
+  function roleConfirmed(role) {
+    return !!role && !role.deletedAt && !!role.confirmedAt && role.confirmedProfile === profileFingerprint(role.profile)
+  }
+  function roleDraftPending(projectId, role) {
+    const draft = store.artifactDrafts[roleScope(projectId, role.id) + ":profile:v2"]
+    if (!draft) return false
+    try { return profileFingerprint(draft) !== profileFingerprint(role.profile) } catch (_) { return true }
+  }
+  function actionableRole(projectId, roleId) {
+    const project = store.projects.find((p) => p.id === projectId && !p.deletedAt)
+    if (!project || project.ended) throw new Error("请先恢复项目，再确认画像或匹配专家。")
+    const role = loadRoles(projectId).find((r) => r.id === roleId && !r.deletedAt)
+    if (!role) throw new Error("画像已删除或不存在。")
+    if (roleDraftPending(projectId, role)) throw new Error("请先保存或取消画像修改。")
+    return role
+  }
+  function confirmRole(projectId, roleId) {
+    const role = actionableRole(projectId, roleId)
+    if (!PROFILE_SCHEMA.some((f) => profileHasValue(role.profile.conditions[f.key]))) throw new Error("请至少填写一项画像条件，再确认画像。")
+    updateRole(projectId, roleId, { confirmedProfile: profileFingerprint(role.profile), confirmedAt: new Date().toISOString() })
+  }
+  function matchConfirmedRole(projectId, roleId) {
+    const role = actionableRole(projectId, roleId)
+    if (!roleConfirmed(role)) throw new Error("请先确认当前画像，再匹配专家。")
+    openProjectSpace(projectId, "p3", roleId)
+    toast("已进入“" + role.name + "”的专家匹配；匹配服务尚未接入，当前展示已有示例。")
+  }
+  function RoleConfirmation({ projectId, role, detail = false }) {
     const s = useStore()
-    const draftKey = demandId + ":profile:v2"
+    const confirmed = roleConfirmed(role)
+    const draft = roleDraftPending(projectId, role)
+    const ended = !s.projects.some((p) => p.id === projectId && !p.deletedAt && !p.ended)
+    const empty = !PROFILE_SCHEMA.some((f) => profileHasValue(role.profile.conditions[f.key]))
+    function act(fn) { try { fn(projectId, role.id) } catch (err) { toast(err.message || "操作失败，请重试") } }
+    return n("div", { className: "eo-role-confirm" + (detail ? " eo-role-confirm-detail" : "") },
+      n("span", { className: confirmed && !draft ? "confirmed" : "", role: "status" }, draft ? "修改未保存" : confirmed ? "画像已确认" : "画像待确认"),
+      n("button", { className: "eo-btn", disabled: ended || draft || empty || confirmed, title: draft ? "请先保存或取消画像修改" : empty ? "请先填写画像条件" : "确认当前画像的筛选条件", onClick: () => act((pid, rid) => { confirmRole(pid, rid); toast("画像已确认，可以匹配当前画像的专家") }) }, confirmed && !draft ? "已确认" : "确认画像"),
+      n("button", { className: "eo-btn primary", disabled: ended || draft || !confirmed, title: "仅匹配当前画像", onClick: () => act(matchConfirmedRole) }, "匹配专家"))
+  }
+
+  function ProfileCriteriaCard({ demandId, roleId = null, embedded = false }) {
+    const s = useStore()
+    const draftKey = roleScope(demandId, roleId) + ":profile:v2"
     let saved, loadError = ""
-    try { saved = loadProfile(demandId) }
+    try { saved = loadProfile(demandId, roleId) }
     catch (_) { loadError = "画像存储无法读取，请恢复数据后再编辑；原数据未被覆盖。" }
     const draft = s.artifactDrafts[draftKey]
     const model = draft || saved
@@ -926,7 +1142,7 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       set({ artifactDrafts: drafts }); setActive(null); setError("")
     }
     function save() {
-      try { saveProfile(demandId, draft); setActive(null); setError(""); toast("专家画像已保存到本机；匹配规则待后端接入") }
+      try { saveProfile(demandId, draft, roleId); setActive(null); setError(""); toast("专家画像已保存到本机；匹配规则待后端接入") }
       catch (err) { setError(err.name === "QuotaExceededError" ? "本机存储空间不足，草稿仍保留。" : err.message || "保存失败，草稿仍保留。") }
     }
     async function copy() {
@@ -958,20 +1174,21 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
             field.type === "tags" ? n("select", { "aria-label": field.label + "匹配方式", value: condition.operator, onChange: (event) => change(field.key, { operator: event.target.value }) },
               n("option", { value: "any_of" }, "任一符合"), n("option", { value: "all_of" }, "全部符合")) : null) : null) :
         n("button", { className: "eo-field-value" + (!filled ? " eo-empty-field" : ""), "aria-label": "修改专家画像 · " + field.label,
-          onClick: () => edit(field.key), title: "点击修改" }, profileValueText(field, condition)),
-        !editing && filled && field.type === "tags" ? n("small", { className: "eo-criterion-hint" }, condition.operator === "all_of" ? "全部符合" : "任一符合") : null)
+          onClick: () => edit(field.key), title: "点击修改" }, profileValueText(field, condition)))
     }
     const fixed = model ? PROFILE_SCHEMA.filter((f) => f.type !== "text" && profileHasValue(model.conditions[f.key])) : []
+    const conditionMeta = n("span", null, fixed.filter((f) => model.conditions[f.key].requirement === "required").length + " 项必须 · " + fixed.filter((f) => model.conditions[f.key].requirement === "preferred").length + " 项优先")
     return n("section", { className: "eo-card eo-pad eo-artifact-card eo-profile-criteria", "aria-label": "专家画像" },
-      n("div", { className: "eo-artifact-head" }, embedded ? n("span", { className: "eo-tag" }, "筛选条件") : n("h3", null, "专家画像", n("span", { className: "eo-tag" }, "筛选条件")),
+      n("div", { className: "eo-artifact-head" + (embedded ? " eo-artifact-head-inline" : "") },
+        embedded ? n("div", { className: "eo-profile-section-title" }, "基础条件", conditionMeta)
+          : n("h3", null, "专家画像", n("span", { className: "eo-tag" }, "筛选条件")),
         n("button", { className: "eo-btn", disabled: !saved || dirty || copying || !profileCopy(saved), onClick: copy, title: dirty ? "保存后再复制" : "复制已填写条件" }, copying ? "复制中…" : "复制画像")),
       loadError ? n("p", { role: "alert", className: "eo-upload-error" }, loadError) : n(React.Fragment, null,
-        n("div", { className: "eo-profile-section-title" }, "基础条件", n("span", null, fixed.filter((f) => model.conditions[f.key].requirement === "required").length + " 项必须 · " + fixed.filter((f) => model.conditions[f.key].requirement === "preferred").length + " 项优先")),
+        embedded ? null : n("div", { className: "eo-profile-section-title" }, "基础条件", conditionMeta),
         n("p", { className: "eo-profile-help" }, "必须条件先筛选；未填写不限制。"),
         ["专业与资质", "教育背景", "任职与投入"].map((group) => n("div", { key: group, className: "eo-criteria-group" },
           n("h4", null, group), n("div", { className: "eo-criteria-grid" }, PROFILE_SCHEMA.filter((f) => f.group === group).map(fieldRow)))),
-        n("p", { className: "eo-profile-policy" }, "信息缺失 → 待核实；明确不符 → 排除。优先条件不淘汰人选。"),
-        n("div", { className: "eo-profile-section-title semantic" }, "经历与能力", n("span", null, "筛选后匹配")),
+        n("div", { className: "eo-profile-section-title semantic" }, "经历与能力"),
         n("p", { className: "eo-profile-help" }, "描述项目所需背景、经历和能力，用于语义匹配。"),
         PROFILE_SCHEMA.filter((f) => f.type === "text").map(fieldRow),
         model.legacyOther ? n("details", { className: "eo-profile-legacy" }, n("summary", null, "历史补充条件 · 待归类"), n("p", null, model.legacyOther),
@@ -981,10 +1198,10 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
           n("button", { className: "eo-btn", onClick: cancel }, "取消"), n("button", { className: "eo-btn primary", onClick: save, disabled: !dirty }, "保存")) : null))
   }
 
-  function RecruitmentFields({ title, badge, labels, values, profile, demandId, embedded = false }) {
+  function RecruitmentFields({ title, badge, labels, values, profile, demandId, roleId = null, embedded = false }) {
     const s = useStore()
     const kind = profile ? "profile" : "jd"
-    const draftKey = demandId + ":" + kind
+    const draftKey = roleScope(demandId, roleId) + ":" + kind
     const draft = s.artifactDrafts[draftKey]
     const [activeField, setActiveField] = useState(null)
     const [error, setError] = useState("")
@@ -1009,7 +1226,7 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       set({ artifactDrafts: drafts }); setActiveField(null); setError("")
     }
     function save() {
-      try { saveArtifact(demandId, kind, labels, draft); setActiveField(null); setError(""); toast(title + "已保存到本机") }
+      try { saveArtifact(demandId, kind, labels, draft, roleId); setActiveField(null); setError(""); toast(title + "已保存到本机") }
       catch (err) { setError(err.name === "QuotaExceededError" ? "本机存储空间不足，修改尚未保存。" : err.message || "保存失败，修改仍保留。") }
     }
     async function copy() {
@@ -1116,37 +1333,102 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
   }
 
   function RecruitmentView({ result, demandId }) {
+    const s = useStore()
+    const [activeId, setActiveId] = useState(() => s.featureRole?.projectId === demandId && s.featureRole.tab === "recruitment" ? s.featureRole.roleId : null)
+    useEffect(() => { if (s.featureRole?.projectId === demandId && s.featureRole.tab === "recruitment") setActiveId(s.featureRole.roleId) }, [s.featureRole, demandId])
     const [artifactTab, setArtifactTab] = useState("profile")
+    const [adding, setAdding] = useState(false)
+    const [name, setName] = useState("")
+    const [deleting, setDeleting] = useState(null)
+    const dialogRef = useRef(null)
+    useEffect(() => {
+      if (!deleting) return
+      const previous = document.activeElement
+      dialogRef.current?.querySelector("button")?.focus()
+      return () => previous?.isConnected && previous.focus()
+    }, [deleting])
+    const [error, setError] = useState("")
+    let roles = [], loadError = ""
+    try { roles = loadRoles(demandId) } catch (err) { loadError = err.message }
+    const visible = roles.filter((r) => !r.deletedAt)
+    const active = visible.find((r) => r.id === activeId)
     const tabs = [["profile", "专家画像"], ["jd", "岗位 JD"]]
-    const prefix = "eo-artifact-" + demandId
+    const prefix = "eo-artifact-" + demandId + "-" + activeId
+    const scope = roleScope(demandId, activeId)
+    const hasDraft = !!(s.artifactDrafts[scope + ":profile:v2"] || s.artifactDrafts[scope + ":jd"])
+    function enter(id) { setActiveId(id); setArtifactTab("profile"); setError("") }
+    function add(event) {
+      event.preventDefault()
+      try { const id = createRole(demandId, name); setAdding(false); setName(""); enter(id); toast("画像已添加，请填写筛选条件和对应 JD") }
+      catch (err) { setError(err.message || "保存失败，请重试") }
+    }
+    function remove() {
+      try { deleteRole(demandId, deleting.id); setDeleting(null); setActiveId(null); setError(""); toast("画像已删除，历史匹配记录保留") }
+      catch (err) { setError(err.message || "删除失败，请重试") }
+    }
     function onTabKey(event, index) {
       const next = event.key === "Home" ? 0 : event.key === "End" ? tabs.length - 1 :
-        event.key === "ArrowRight" ? (index + 1) % tabs.length :
-        event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : null
+        event.key === "ArrowRight" ? (index + 1) % tabs.length : event.key === "ArrowLeft" ? (index + tabs.length - 1) % tabs.length : null
       if (next === null) return
-      event.preventDefault()
-      setArtifactTab(tabs[next][0])
-      event.currentTarget.parentElement.querySelectorAll('[role="tab"]')[next].focus()
+      event.preventDefault(); setArtifactTab(tabs[next][0]); event.currentTarget.parentElement.querySelectorAll('[role="tab"]')[next].focus()
     }
     return n("div", { className: "eo-recruitment" },
-      n(DemandUpload, { demandId, showParse: true }),
-      result ? n("section", { className: "eo-card eo-artifact-switcher", "aria-label": "岗位要求" },
+      active ? n("div", { className: "eo-role-detail-head" },
+        n("button", { className: "eo-btn", onClick: () => { setActiveId(null); setError("") } }, "← 全部画像"),
+        n("div", null, n("h3", null, active.name), n("span", null, "岗位要求 / 画像详情", hasDraft ? " · 修改草稿已保留" : "")),
+        n("button", { className: "eo-btn", onClick: () => { setDeleting(active); setError("") } }, "删除画像")) :
+        n(DemandUpload, { demandId, showParse: true }),
+      loadError ? n("p", { role: "alert", className: "eo-upload-error" }, loadError) : null,
+      !active && !loadError ? n("section", { className: "eo-role-overview" },
+        n("div", { className: "eo-role-list-head" },
+          n("div", null, n("h3", null, "专家画像", n("span", { className: "eo-tag" }, visible.length)),
+            n("p", null, "一份需求可对应多个画像，每个画像拥有独立的筛选条件和岗位 JD。")),
+          n("button", { className: "eo-btn primary", onClick: () => { setAdding(true); setError("") } }, "+ 添加画像")),
+        adding ? n("form", { className: "eo-role-add eo-card eo-pad", onSubmit: add },
+          n("label", null, "画像名称", n("input", { autoFocus: true, maxLength: 80, value: name, placeholder: "例如：粤语转写专家", onChange: (event) => setName(event.target.value) })),
+          n("button", { className: "eo-btn", type: "button", onClick: () => { setAdding(false); setName(""); setError("") } }, "取消"),
+          n("button", { className: "eo-btn primary", type: "submit", disabled: !name.trim() }, "添加")) : null,
+        n("div", { className: "eo-role-grid" }, visible.map((role, index) => {
+          const fields = PROFILE_SCHEMA.filter((f) => profileHasValue(role.profile.conditions[f.key]))
+          const count = s.experts.filter((e) => e.candidateProjectIds.includes(demandId) && candidateRoleId(e, demandId) === role.id).length
+          return n("article", { key: role.id, className: "eo-card eo-role-card" },
+            n("button", { className: "eo-role-open", onClick: () => enter(role.id), "aria-label": "查看画像：" + role.name },
+              n("div", { className: "eo-role-card-top" }, n("span", null, String(index + 1).padStart(2, "0")),
+                n("span", { className: "eo-tag" }, role.origin === "manual" ? "手动添加" : "示例画像")),
+              n("h3", null, role.name),
+              n("p", null, role.profile.conditions.abilities?.value || role.profile.conditions.background?.value || "补充筛选条件后，可用于匹配专家。"),
+              n("div", { className: "eo-role-card-meta" }, n("span", null, fields.length + " 项已填写"), n("span", null, count + " 位匹配专家")),
+              n("div", { className: "eo-role-card-bottom" }, n("span", null, "专家画像 · 岗位 JD"), n("span", null, "查看详情 →"))),
+            n(RoleConfirmation, { projectId: demandId, role }),
+            n("button", { className: "eo-role-delete", "aria-label": "删除画像：" + role.name, onClick: () => { setDeleting(role); setError("") } }, "删除"))
+        })),
+        !visible.length ? n("div", { className: "eo-card eo-pad eo-role-empty" }, n("h3", null, "暂无专家画像"), n("p", null, "上传甲方需求，或手动添加一个画像开始整理岗位要求。")) : null,
+        n("p", { className: "eo-role-note" }, "当前为前端演示；文档解析服务尚未接入。已有示例与手动修改保存在本机。")) : null,
+      active ? n(RoleConfirmation, { projectId: demandId, role: active, detail: true }) : null,
+      active ? n("section", { className: "eo-card eo-artifact-switcher", "aria-label": active.name + "的岗位要求" },
         n("div", { className: "eo-artifact-tabs", role: "tablist", "aria-label": "成果类型" },
           tabs.map(([key, label], index) => n("button", { key, type: "button", role: "tab", className: "eo-artifact-tab",
             id: prefix + "-tab-" + key, "aria-controls": prefix + "-panel-" + key,
             "aria-selected": artifactTab === key, tabIndex: artifactTab === key ? 0 : -1,
             onClick: () => setArtifactTab(key), onKeyDown: (event) => onTabKey(event, index) }, label))),
-        // Keep both editors mounted so switching tabs never discards an in-progress edit.
-        n("div", { className: "eo-artifact-panel", role: "tabpanel", id: prefix + "-panel-profile",
-          "aria-labelledby": prefix + "-tab-profile", hidden: artifactTab !== "profile" },
-          n(ProfileCriteriaCard, { demandId, embedded: true })),
-        n("div", { className: "eo-artifact-panel", role: "tabpanel", id: prefix + "-panel-jd",
-          "aria-labelledby": prefix + "-tab-jd", hidden: artifactTab !== "jd" },
-          n(RecruitmentFields, { title: "岗位 JD", badge: "对外草稿", labels: JD_FIELDS, values: result.jd, demandId, embedded: true })))
-        : n("section", { className: "eo-card eo-pad" },
-          n("h3", null, "暂无招募成果"),
-          n("div", null, "当前需求还没有解析结果、专家画像或岗位 JD。")),
-      result ? n(DemandEvidence, { source: result.source }) : null)
+        n("div", { className: "eo-artifact-panel", role: "tabpanel", id: prefix + "-panel-profile", "aria-labelledby": prefix + "-tab-profile", hidden: artifactTab !== "profile" },
+          n(ProfileCriteriaCard, { key: active.id, demandId, roleId: active.id, embedded: true })),
+        n("div", { className: "eo-artifact-panel", role: "tabpanel", id: prefix + "-panel-jd", "aria-labelledby": prefix + "-tab-jd", hidden: artifactTab !== "jd" },
+          n(RecruitmentFields, { key: active.id, title: "岗位 JD", badge: "对外草稿", labels: JD_FIELDS, values: active.jd, demandId, roleId: active.id, embedded: true }))) : null,
+      active ? n(DemandEvidence, { source: active.source }) : null,
+      error ? n("p", { role: "alert", className: "eo-upload-error" }, error) : null,
+      deleting ? n("div", { className: "eo-project-dialog-backdrop" }, n("section", { className: "eo-project-dialog", ref: dialogRef, role: "dialog", "aria-modal": true, "aria-label": "删除画像确认",
+        onKeyDown: (event) => {
+          if (event.key === "Escape") { event.stopPropagation(); setDeleting(null) }
+          if (event.key === "Tab") {
+            const buttons = [...event.currentTarget.querySelectorAll("button")]
+            const index = buttons.indexOf(document.activeElement)
+            event.preventDefault(); buttons[(index + (event.shiftKey ? -1 : 1) + buttons.length) % buttons.length]?.focus()
+          }
+        } },
+        n("h3", null, "删除“" + deleting.name + "”？"), n("p", null, "画像及对应 JD 将从岗位要求中移除。历史匹配记录保留至专家匹配的“已删除画像”中，仅供查看，不再匹配、审核或导出。"),
+        error ? n("p", { role: "alert", className: "eo-upload-error" }, error) : null,
+        n("div", { className: "eo-project-dialog-actions" }, n("button", { className: "eo-btn", onClick: () => setDeleting(null) }, "取消"), n("button", { className: "eo-btn danger", onClick: remove }, "确认删除")))) : null)
   }
 
   // Receipt state is project-specific; AI classification remains separate from human review.
@@ -1174,9 +1456,9 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     catch (_) { toast("保存失败，请重试；当前审核和提醒状态未改变。"); return false }
     set({ candidateReceipts: receipts }); return true
   }
-  function openCandidate(projectId, expert) {
+  function openCandidate(projectId, expert, readOnly = false) {
     writeCandidateReceipts(projectId, [expert.id], (revision) => ({ seenRevision: revision }))
-    set({ drawer: { projectId, id: expert.id } })
+    set({ drawer: { projectId, id: expert.id, readOnly } })
   }
   function reviewCandidates(projectId, ids, review) {
     if (!["passed", "excluded", "pending"].includes(review)) return false
@@ -1197,11 +1479,13 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
   function pendingCandidates(state, projectId, experts, bucket) {
     return poolCandidates(state, projectId, experts, { view: "ai", ai: bucket, source: "all", pendingOnly: true })
   }
-  function BoardView({ projectId, experts }) {
+  function BoardView({ projectId, experts, role }) {
     const s = useStore()
     const [view, setView] = useState("all")
     const [ai, setAI] = useState("all")
     const [source, setSource] = useState("all")
+    const scopedExperts = experts
+    const readOnly = !!role.deletedAt
     const [query, setQuery] = useState("")
     const [selected, setSelected] = useState([])
     const [pendingOnly, setPendingOnly] = useState(false)
@@ -1209,34 +1493,35 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     const groups = [["A", "推荐"], ["B", "待确认"], ["C", "建议排除"]]
     const labels = { A: "推荐入项", B: "待确认", C: "推荐排除" }
     const sourceLabels = { 原识: "原识平台", 飞书: "飞书表单", 手填: "手动上传" }
-    const rows = poolCandidates(s, projectId, experts, { view, ai, source, query, pendingOnly })
+    const rows = poolCandidates(s, projectId, scopedExperts, { view, ai, source, query, pendingOnly })
     const selectedIds = selected.filter((id) => rows.some((e) => e.id === id))
     const allSelected = rows.length > 0 && selectedIds.length === rows.length
     useEffect(() => { if (selectAllRef.current) selectAllRef.current.indeterminate = selectedIds.length > 0 && !allSelected }, [selectedIds.length, allSelected])
     function filter(update) { update(); setSelected([]) }
     function review(ids, value) {
+      if (readOnly) return
       if (reviewCandidates(projectId, ids, value)) { setSelected([]); toast(value === "passed" ? "已人工确认通过" : value === "excluded" ? "已人工确认排除" : "已恢复待人工确认") }
     }
     return n("div", { className: "eo-candidate-workspace" },
       n("div", { className: "eo-stat-grid", "aria-label": "按 AI 判断分类的待人工审核数量" }, groups.map(([bucket, label]) => {
-        const members = pendingCandidates(s, projectId, experts, bucket)
+        const members = pendingCandidates(s, projectId, scopedExperts, bucket)
         const unread = members.filter((e) => candidateReceipt(s, projectId, e).unread).length
         return n("button", { key: bucket, type: "button", className: "eo-stat " + bucket, "aria-pressed": view === "ai" && ai === bucket && pendingOnly,
-          "aria-label": "AI判断：" + label + "，待人工审核 " + members.length + " 人" + (unread ? "，" + unread + " 人有新动态" : ""),
+          "aria-label": "AI判断：" + label + (readOnly ? "，历史未审核 " : "，待人工审核 ") + members.length + " 人" + (unread ? "，" + unread + " 人有新动态" : ""),
           onClick: () => filter(() => { setView("ai"); setAI(bucket); setPendingOnly(true); setSource("all"); setQuery("") }) },
           n("span", { className: "eo-stat-label" }, "AI判断：" + label), n("span", { className: "eo-stat-number" }, members.length, n("small", null, "人")),
-          n("span", { className: "eo-stat-caption" }, "待人工审核数量"),
+          n("span", { className: "eo-stat-caption" }, readOnly ? "历史未审核数量" : "待人工审核数量"),
           unread ? n("span", { className: "eo-stat-new", title: "待人工审核中新增或分析更新后尚未查看的专家；查看详情后清除" }, "+" + unread) : null)
       })),
       n("div", { className: "eo-pool-tabs", "aria-label": "候选人分类" },
         [["all", "全部"], ["ai", "AI 推荐"], ["passed", "已通过"], ["excluded", "已排除"]].map(([key, label]) =>
           n("button", { key, "aria-pressed": view === key, onClick: () => filter(() => { setView(key); setAI("all"); setPendingOnly(false) }) }, label,
-            n("small", null, key === "all" || key === "ai" ? experts.length : experts.filter((e) => candidateReceipt(s, projectId, e).review === key).length)))),
+            n("small", null, key === "all" || key === "ai" ? scopedExperts.length : scopedExperts.filter((e) => candidateReceipt(s, projectId, e).review === key).length)))),
       n("div", { className: "eo-pool-filters" },
         n("select", { "aria-label": "AI 推荐状态", value: ai, onChange: (event) => filter(() => setAI(event.target.value)) }, n("option", { value: "all" }, "全部 AI 状态"), groups.map(([key]) => n("option", { key, value: key }, labels[key]))),
         n("select", { "aria-label": "专家来源", value: source, onChange: (event) => filter(() => setSource(event.target.value)) }, n("option", { value: "all" }, "来源：全部"), Object.entries(sourceLabels).map(([key, label]) => n("option", { key, value: key }, label))),
         n("input", { type: "search", "aria-label": "搜索候选人", placeholder: "姓名、ID、城市或匹配理由", value: query, onChange: (event) => filter(() => setQuery(event.target.value)) })),
-      n("div", { className: "eo-pool-bulk" },
+      !readOnly ? n("div", { className: "eo-pool-bulk" },
         n("div", { className: "eo-pool-checks" },
           ["all", "ai"].includes(view) ? n("label", { className: "eo-pool-pending" },
             n("input", { type: "checkbox", checked: pendingOnly, onChange: (event) => filter(() => setPendingOnly(event.target.checked)) }), "仅待人工审核") : null,
@@ -1244,25 +1529,84 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
         n("span", { className: "eo-pool-selected" }, "已选 " + selectedIds.length + " 人"),
         n("div", { className: "eo-pool-bulk-actions" },
           n("button", { className: "eo-btn", disabled: !selectedIds.length, onClick: () => review(selectedIds, "passed") }, "批量通过"),
-          n("button", { className: "eo-btn", disabled: !selectedIds.length, onClick: () => review(selectedIds, "excluded") }, "批量排除"))),
+          n("button", { className: "eo-btn", disabled: !selectedIds.length, onClick: () => review(selectedIds, "excluded") }, "批量排除"))) : null,
       n("div", { className: "eo-pool-list" }, rows.length ? rows.map((e) => {
         const receipt = candidateReceipt(s, projectId, e)
+        // The parent supplies a single profile and its candidates.
         const muted = ["all", "ai"].includes(view) && receipt.review !== "pending"
-        return n("article", { key: e.id, className: "eo-pool-row" + (muted ? " reviewed" : ""), "aria-label": e.name + "候选人" },
-          n("input", { type: "checkbox", "aria-label": "选择 " + e.name, checked: selectedIds.includes(e.id), onChange: (event) => setSelected(event.target.checked ? [...selectedIds, e.id] : selectedIds.filter((id) => id !== e.id)) }),
+        return n("article", { key: e.id, className: "eo-pool-row" + (readOnly ? " history" : "") + (muted ? " reviewed" : ""), "aria-label": e.name + "候选人" },
+          !readOnly ? n("input", { type: "checkbox", "aria-label": "选择 " + e.name, checked: selectedIds.includes(e.id), onChange: (event) => setSelected(event.target.checked ? [...selectedIds, e.id] : selectedIds.filter((id) => id !== e.id)) }) : null,
           n("div", { className: "eo-pool-info" },
             n("div", { className: "eo-pool-name" }, receipt.unread ? n("span", { className: "eo-pool-new", title: "尚未查看的新动态" }, "新") : null, n("strong", null, e.name), n("small", null, e.id.replace("demo-expert-", "E")),
               n("span", { className: "eo-ai-badge " + e.bucket }, "AI · " + labels[e.bucket]), n("span", { className: "eo-pool-source " + (e.src === "飞书" ? "feishu" : e.src === "手填" ? "manual" : "origin") }, sourceLabels[e.src])),
             n("p", null, e.city + " · " + e.years + " 年经验 · " + e.rate + " 元/小时 · 匹配分 " + e.score),
+
             n("p", { className: "eo-pool-reason" }, e.why)),
-          n("div", { className: "eo-pool-side" }, n("span", { className: "eo-pool-status" }, receipt.review === "passed" ? "人工已通过" : receipt.review === "excluded" ? "人工已排除" : "待人工确认"),
-            n("button", { className: "eo-pool-detail", onClick: () => openCandidate(projectId, e) }, "查看 AI 理由 →"),
-            n("div", { className: "eo-pool-row-actions" },
+          n("div", { className: "eo-pool-side" }, n("span", { className: "eo-pool-status" }, receipt.review === "passed" ? "人工已通过" : receipt.review === "excluded" ? "人工已排除" : readOnly ? "历史未审核" : "待人工确认"),
+            n("button", { className: "eo-pool-detail", onClick: () => openCandidate(projectId, e, readOnly) }, "查看 AI 理由 →"),
+            !readOnly ? n("div", { className: "eo-pool-row-actions" },
               receipt.review !== "passed" ? n("button", { className: "eo-btn primary", onClick: () => review([e.id], "passed") }, "审核通过") : null,
               receipt.review !== "excluded" ? n("button", { className: "eo-btn", onClick: () => review([e.id], "excluded") }, "排除") : null,
-              receipt.review !== "pending" ? n("button", { className: "eo-btn", onClick: () => review([e.id], "pending") }, "撤销结论") : null)))
-      }) : n("div", { className: "eo-pool-empty" }, experts.length ? "没有符合筛选条件的专家" : "当前项目暂无候选人")),
+              receipt.review !== "pending" ? n("button", { className: "eo-btn", onClick: () => review([e.id], "pending") }, "撤销结论") : null) : null))
+      }) : n("div", { className: "eo-pool-empty" }, experts.length ? "没有符合筛选条件的专家" : "当前画像暂无候选人")),
       n("p", { className: "eo-pool-note" }, "示例数据 · +N 为尚未查看的新动态人数；查看详情后清除。抓取与上传解析接口待接入。"))
+  }
+
+  function matchingRoles(projectId, roles, experts) {
+    const projectExperts = experts.filter((e) => e.candidateProjectIds.includes(projectId))
+    const entries = roles.map((role) => ({ role, experts: projectExperts.filter((e) => candidateRoleId(e, projectId) === role.id) }))
+    // Keep old unmatched metadata visible rather than silently losing historical candidates.
+    for (const id of new Set(projectExperts.map((e) => candidateRoleId(e, projectId)))) {
+      if (!entries.some((entry) => entry.role.id === id)) entries.push({
+        role: { id, name: "历史画像", deletedAt: "unavailable" },
+        experts: projectExperts.filter((e) => candidateRoleId(e, projectId) === id) })
+    }
+    return { active: entries.filter((entry) => !entry.role.deletedAt),
+      archived: entries.filter((entry) => entry.role.deletedAt && entry.experts.length) }
+  }
+  function MatchingView({ projectId, experts }) {
+    const s = useStore()
+    const [activeId, setActiveId] = useState(() => s.featureRole?.projectId === projectId && s.featureRole.tab === "p3" ? s.featureRole.roleId : null)
+    useEffect(() => { if (s.featureRole?.projectId === projectId && s.featureRole.tab === "p3") setActiveId(s.featureRole.roleId) }, [s.featureRole, projectId])
+    let groups, error = ""
+    try { groups = matchingRoles(projectId, loadRoles(projectId), experts) } catch (err) { error = err.message }
+    if (error) return n("p", { role: "alert", className: "eo-upload-error" }, error)
+    const current = [...groups.active, ...groups.archived].find((entry) => entry.role.id === activeId)
+    const card = ({ role, experts: members }) => {
+      const pending = members.filter((e) => candidateReceipt(s, projectId, e).review === "pending").length
+      const unread = members.filter((e) => candidateReceipt(s, projectId, e).unread).length
+      const passed = members.filter((e) => candidateReceipt(s, projectId, e).review === "passed").length
+      return n("article", { className: "eo-card eo-role-card eo-match-role-card", key: role.id },
+        n("button", { className: "eo-role-open", "aria-label": "查看匹配：" + role.name, onClick: () => setActiveId(role.id) },
+          n("div", { className: "eo-role-card-top" }, n("span", { className: "eo-tag" }, role.deletedAt ? "画像已删除" : members.length ? "匹配结果" : "暂无匹配"),
+            unread ? n("span", { className: "eo-match-unread" }, "+" + unread) : null),
+          n("h3", null, role.name),
+          n("div", { className: "eo-match-metrics" },
+            n("span", null, n("strong", null, members.length), "候选人"),
+            n("span", null, n("strong", null, pending), role.deletedAt ? "历史未审核" : "待人工审核"),
+            n("span", null, n("strong", null, passed), "已通过")),
+          n("div", { className: "eo-role-card-bottom" }, n("span", null, role.deletedAt ? "保留原归属与审核记录" : "每位专家仅归属一个画像"),
+            n("span", null, role.deletedAt ? "查看历史 →" : "查看候选人 →"))))
+    }
+    if (current) return n("div", null,
+      n("div", { className: "eo-role-detail-head eo-match-detail-head" },
+        n("button", { className: "eo-btn", onClick: () => setActiveId(null) }, "← 全部画像"),
+        n("div", { className: "eo-match-heading" }, n("h3", null, current.role.name), n("span", null, "专家匹配 / " + (current.role.deletedAt ? "历史记录" : "候选人"))),
+        !current.role.deletedAt ? n("div", { className: "eo-match-actions" },
+          n("button", { className: "eo-btn", disabled: !current.experts.some((e) => candidateReceipt(s, projectId, e).review === "passed"), onClick: () => toast("当前画像已通过名单的导出服务尚未接入") }, "导出已通过名单"),
+          n("button", { className: "eo-btn primary", disabled: !roleConfirmed(current.role) || roleDraftPending(projectId, current.role) || s.projects.find((p) => p.id === projectId)?.ended, onClick: () => { try { matchConfirmedRole(projectId, current.role.id) } catch (err) { toast(err.message) } } }, current.experts.length ? "重新匹配" : "开始匹配")) : null),
+      current.role.deletedAt ? n("p", { className: "eo-match-history-note" }, "画像已删除，历史匹配与人工审核结论保留。此处仅供查看，不再匹配、审核或导出，也不会将专家自动转入其他画像。") : null,
+      !current.role.deletedAt && (!roleConfirmed(current.role) || roleDraftPending(projectId, current.role)) ? n("div", { className: "eo-role-confirm eo-role-confirm-detail" }, n("span", null, "请先核对并确认当前画像，再开始匹配。"), n("button", { className: "eo-btn", onClick: () => openProjectSpace(projectId, "recruitment", current.role.id) }, "前往确认画像")) : null,
+      n(BoardView, { key: current.role.id + (current.role.deletedAt ? ":archive" : ""), projectId, experts: current.experts, role: current.role }))
+    return n("section", { className: "eo-matching-overview" },
+      n("div", { className: "eo-role-list-head" }, n("div", null, n("h3", null, "选择专家画像"), n("p", null, "选择岗位画像，查看匹配建议并完成人工审核。")),
+        n("button", { className: "eo-btn", onClick: () => openProjectSpace(projectId, "recruitment") }, "管理画像")),
+      n("div", { className: "eo-role-grid" }, groups.active.map(card)),
+      !groups.active.length ? n("div", { className: "eo-card eo-pad eo-role-empty" }, n("h3", null, "暂无可用画像"),
+        n("p", null, "请先在岗位要求中添加专家画像，再开始匹配。"),
+        n("button", { className: "eo-btn primary", onClick: () => openProjectSpace(projectId, "recruitment") }, "前往岗位要求")) : null,
+      groups.archived.length ? n("details", { className: "eo-match-archive" }, n("summary", null, "已删除画像 · 历史记录（" + groups.archived.length + "）"),
+        n("div", { className: "eo-role-grid" }, groups.archived.map(card))) : null)
   }
 
   // Knowledge sources reuse project originals. Built-in excerpts are explicitly marked as demo content.
@@ -1300,30 +1644,129 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       (scope.some((d) => !d.paragraphs.length) ? " 尚未解析的上传文件未参与检索。" : ""), citations: hits }
   }
 
+  // Finder-style knowledge workspace: root folders + documents, with rename / move / delete.
   function KnowledgeView() {
     const s = useStore()
+    const meta = s.kbMeta || { folders: [], docs: {}, hidden: [] }
     const [search, setSearch] = useState("")
+    const [renaming, setRenaming] = useState(null)
+    const [draftName, setDraftName] = useState("")
+    const [dragId, setDragId] = useState(null)
+    const folderId = s.kbFolderId || null
     const docs = knowledgeDocuments(s)
+      .filter((d) => !meta.hidden.includes(d.id))
+      .map((d) => ({ ...d, displayName: (meta.docs[d.id] && meta.docs[d.id].name) || d.name,
+        folderId: (meta.docs[d.id] && meta.docs[d.id].folderId) || null }))
     const selected = docs.find((d) => d.id === s.knowledgeSelected)
-    const filtered = docs.filter((d) => (d.name + " " + d.project).toLowerCase().includes(search.trim().toLowerCase()))
+    const current = meta.folders.find((f) => f.id === folderId) || null
+    const q = search.trim().toLowerCase()
+    const inFolder = current ? docs.filter((d) => d.folderId === current.id) : docs
+    const shownDocs = q ? docs.filter((d) => (d.displayName + " " + d.project).toLowerCase().includes(q)) : inFolder
+    const shownFolders = q ? meta.folders.filter((f) => f.name.toLowerCase().includes(q)) : (current ? [] : meta.folders)
+
+    function commit(next) { const merged = { ...meta, ...next }; set({ kbMeta: merged }); persistKbMeta(merged) }
+    function setDocMeta(id, patch) { commit({ docs: { ...meta.docs, [id]: { ...(meta.docs[id] || {}), ...patch } } }) }
+    function startRename(kind, id, name) { setRenaming({ kind, id }); setDraftName(name) }
+    function finishRename() {
+      const name = draftName.trim()
+      if (!renaming || !name) { setRenaming(null); return }
+      if (renaming.kind === "folder") commit({ folders: meta.folders.map((f) => (f.id === renaming.id ? { ...f, name } : f)) })
+      else setDocMeta(renaming.id, { name })
+      setRenaming(null)
+    }
+    function addFolder() {
+      const id = "kb-folder-" + Date.now().toString(36)
+      commit({ folders: [...meta.folders, { id, name: "新建文件夹", createdAt: new Date().toISOString() }] })
+      startRename("folder", id, "新建文件夹")
+    }
+    function removeFolder(id) {
+      const nextDocs = {}
+      for (const [key, value] of Object.entries(meta.docs)) nextDocs[key] = { ...value, folderId: value.folderId === id ? null : value.folderId }
+      commit({ folders: meta.folders.filter((f) => f.id !== id), docs: nextDocs })
+      if (folderId === id) set({ kbFolderId: null })
+    }
+    function removeDoc(id) { commit({ hidden: [...meta.hidden, id] }); if (s.knowledgeSelected === id) set({ knowledgeSelected: null }) }
+    function moveDoc(id, to) { if (id) setDocMeta(id, { folderId: to }) }
+    function enterFolder(id) { set({ kbFolderId: id, knowledgeSelected: null }) }
+
+    const fileKind = (name) => {
+      const ext = (name.split(".").pop() || "").toLowerCase()
+      if (ext === "pdf") return "pdf"
+      if (["doc", "docx", "pages", "rtf"].includes(ext)) return "doc"
+      if (["xls", "xlsx", "csv", "numbers"].includes(ext)) return "sheet"
+      if (["ppt", "pptx", "key"].includes(ext)) return "slides"
+      if (["ipynb", "py", "js", "ts", "json", "sh"].includes(ext)) return "code"
+      if (["png", "jpg", "jpeg", "gif", "webp", "svg"].includes(ext)) return "image"
+      return "txt"
+    }
+    const extLabel = (name) => (name.includes(".") ? name.split(".").pop().slice(0, 4).toUpperCase() : "FILE")
+
+    const nameEditor = (kind, id) => n("input", { className: "eo-kb-rename", value: draftName, autoFocus: true,
+      onClick: (event) => event.stopPropagation(), onChange: (event) => setDraftName(event.target.value), onBlur: finishRename,
+      onKeyDown: (event) => {
+        if (event.key === "Enter") { event.preventDefault(); finishRename() }
+        if (event.key === "Escape") { event.preventDefault(); setRenaming(null) }
+      } })
+
+    const folderCell = (f) => n("div", { key: f.id, className: "eo-kb-cell", role: "button", tabIndex: 0, title: f.name,
+        onClick: () => enterFolder(f.id),
+        onKeyDown: (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); enterFolder(f.id) } },
+        onDragOver: (event) => { event.preventDefault(); event.dataTransfer.dropEffect = "move" },
+        onDrop: (event) => { event.preventDefault(); moveDoc(event.dataTransfer.getData("text/eo-doc") || dragId, f.id); setDragId(null) } },
+      n("span", { className: "eo-kb-folder-icon", "aria-hidden": true }),
+      renaming && renaming.kind === "folder" && renaming.id === f.id ? nameEditor("folder", f.id) : n("span", { className: "eo-kb-name" }, f.name),
+      n("span", { className: "eo-kb-cell-tools" },
+        n("button", { className: "eo-kb-tool", type: "button", title: "重命名", "aria-label": "重命名 " + f.name,
+          onClick: (event) => { event.stopPropagation(); startRename("folder", f.id, f.name) } }, "✎"),
+        n("button", { className: "eo-kb-tool", type: "button", title: "删除文件夹", "aria-label": "删除 " + f.name,
+          onClick: (event) => { event.stopPropagation(); removeFolder(f.id) } }, "✕")))
+
+    const docCell = (d) => n("div", { key: d.id, className: "eo-kb-cell" + (d.id === selected?.id ? " on" : ""), role: "button", tabIndex: 0,
+        draggable: true, title: d.displayName,
+        onClick: () => set({ knowledgeSelected: d.id }),
+        onKeyDown: (event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); set({ knowledgeSelected: d.id }) } },
+        onDragStart: (event) => { setDragId(d.id); event.dataTransfer.setData("text/eo-doc", d.id); event.dataTransfer.effectAllowed = "move" } },
+      n("span", { className: "eo-kb-file-tile " + fileKind(d.displayName), "aria-hidden": true }, n("em", null, extLabel(d.displayName))),
+      renaming && renaming.kind === "doc" && renaming.id === d.id ? nameEditor("doc", d.id) : n("span", { className: "eo-kb-name" }, d.displayName),
+      n("span", { className: "eo-kb-cell-sub" }, d.sample ? "示例原文" : d.project),
+      n("span", { className: "eo-kb-cell-tools" },
+        n("button", { className: "eo-kb-tool", type: "button", title: "重命名", "aria-label": "重命名 " + d.displayName,
+          onClick: (event) => { event.stopPropagation(); startRename("doc", d.id, d.displayName) } }, "✎"),
+        n("button", { className: "eo-kb-tool", type: "button", title: "删除", "aria-label": "删除 " + d.displayName,
+          onClick: (event) => { event.stopPropagation(); removeDoc(d.id) } }, "✕")))
+
+    const rootDrop = { onDragOver: (event) => { event.preventDefault(); event.dataTransfer.dropEffect = "move" },
+      onDrop: (event) => { event.preventDefault(); moveDoc(event.dataTransfer.getData("text/eo-doc") || dragId, null); setDragId(null) } }
+
     return n("div", { className: "eo-knowledge" },
       n(DemandUpload, { demandId: "__knowledge", title: "知识库文档" }),
-      n("section", { className: "eo-card eo-pad" },
+      n("div", { className: "eo-kb-nav" },
         n("div", { className: "eo-kb-toolbar" },
-          n("h3", null, "全部文档", n("span", { className: "eo-tag" }, docs.length + " 份")),
-          n("input", { type: "search", value: search, placeholder: "搜索文档或项目", "aria-label": "搜索知识库文档",
-            onChange: (event) => setSearch(event.target.value) })),
-        n("div", { className: "eo-upload-note" }, "汇总各项目文档与通用资料；选择文档后，可在右侧定向提问。"),
-        n("div", { className: "eo-kb-docs" }, filtered.map((doc) =>
-          n("button", { key: doc.id, className: "eo-kb-doc" + (doc.id === selected?.id ? " on" : ""),
-            "aria-pressed": doc.id === selected?.id, onClick: () => set({ knowledgeSelected: doc.id }) },
-            n("span", { className: "eo-kb-file-icon", "aria-hidden": true }, doc.sample ? "TXT" : doc.name.split('.').pop().toUpperCase()),
-            n("span", { className: "eo-kb-file-name" }, n("b", null, doc.name), n("small", null, doc.project)),
-            n("span", { className: "eo-tag" + (doc.sample ? "" : " warn") }, doc.sample ? "示例原文" : "待解析")))),
-        !filtered.length ? n("p", { className: "eo-list-empty" }, search ? "没有符合搜索条件的文档。" : "暂无文档，上传 PDF 或 Word 开始整理知识库。") : null),
+          n("div", { className: "eo-kb-crumbs" },
+            n("button", { className: "eo-crumb" + (current ? "" : " on"), type: "button", onClick: () => set({ kbFolderId: null, knowledgeSelected: null }) }, "全部文档"),
+            current ? n(React.Fragment, null, n("span", { className: "eo-crumb-sep" }, "›"),
+              n("span", { className: "eo-crumb on" }, current.name)) : null,
+            n("span", { className: "eo-tag" }, (q ? shownDocs.length + shownFolders.length : shownDocs.length + shownFolders.length) + " 项")),
+          n("div", { className: "eo-kb-actions" },
+            n("button", { className: "eo-btn", type: "button", onClick: addFolder }, "新建文件夹"),
+            n("input", { type: "search", value: search, placeholder: "搜索文档", "aria-label": "搜索知识库文档",
+              onChange: (event) => setSearch(event.target.value) })))),
+      n("div", { className: "eo-kb-content" },
+        n("div", { className: "eo-upload-note" }, current
+          ? "拖拽文档到「全部文档」或其它文件夹可移动；点右上角 ✎ 重命名、✕ 删除。"
+          : "双击/点击文件夹进入；把文档拖到文件夹上即可归类。"),
+        (shownFolders.length || shownDocs.length) ? n("div", { className: "eo-kb-grid" },
+          shownFolders.map(folderCell), shownDocs.map(docCell)) :
+          n("p", { className: "eo-list-empty" }, q ? "没有符合搜索条件的文档。" : "暂无文档，上传 PDF 或 Word 开始整理知识库。"),
+        current ? n("div", { className: "eo-kb-root-drop", ...rootDrop }, "拖到这里可移出文件夹") : null),
       selected ? n("section", { className: "eo-card eo-pad eo-kb-preview" },
-        n("div", { className: "eo-kb-toolbar" }, n("h3", null, selected.name),
-          n("button", { className: "eo-btn", onClick: () => set({ knowledgeSelected: null }) }, "返回全部范围")),
+        n("div", { className: "eo-kb-toolbar" }, n("h3", null, selected.displayName),
+          n("div", { className: "eo-kb-actions" },
+            n("select", { className: "eo-kb-move", value: selected.folderId || "", "aria-label": "移动到文件夹",
+              onChange: (event) => moveDoc(selected.id, event.target.value || null) },
+              n("option", { value: "" }, "根目录"),
+              meta.folders.map((f) => n("option", { key: f.id, value: f.id }, f.name))),
+            n("button", { className: "eo-btn", onClick: () => set({ knowledgeSelected: null }) }, "返回全部范围"))),
         selected.sample ? n("div", { className: "eo-kb-quotes" }, selected.paragraphs.map((text, i) =>
           n("p", { key: i }, n("small", null, "第 " + (i + 1) + " 段"), text))) :
           n("p", { className: "eo-upload-note" }, "原文件已在本次会话暂存（" + Math.max(1, Math.round(selected.file.size / 1024)) + " KB）。尚未解析正文，暂不能用于知识库问答；刷新后需重新选择文件。")) : null)
@@ -1457,9 +1900,10 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
         n("small", null, "当前为示例候选池数据；真实跨项目履历接口待接入。"))))
   }
 
-  function openProjectSpace(projectId, tab) {
+  function openProjectSpace(projectId, tab, roleId = null) {
     if (!["home", "recruitment", "p3"].includes(tab) || !store.projects.some((p) => p.id === projectId && !p.deletedAt)) return
-    set({ nav: "project", demand: projectId, expandedDemand: projectId, tab, drawer: null })
+    // 点项目卡片只切换项目；只有进入具体功能页（tab 非 home）时才展开该项目下的功能菜单
+    set({ nav: "project", demand: projectId, expandedDemand: tab === "home" ? null : projectId, tab, drawer: null, featureRole: { projectId, tab, roleId } })
   }
 
   // Navigation only: no business task execution or model-response parsing.
@@ -1577,9 +2021,13 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
     const s = useStore()
     const e = s.experts.find((x) => x.id === expert.id && x.candidateProjectIds.includes(expert.projectId))
     if (!e) return null
-    const status = e.bucket === "A" ? ["推荐", "#ecfdf5", "#047857"] : e.bucket === "B" ? ["待确认", "#fffbeb", "#b45309"] : ["排除", "#f3f4f6", "#6b7280"]
+    let matchedRole
+    try { matchedRole = loadRoles(expert.projectId).find((r) => r.id === candidateRoleId(e, expert.projectId)) } catch (_) {}
+    const status = e.bucket === "A" ? ["推荐", "#ecfdf5", "#047857"] : e.bucket === "B" ? ["待确认", "#fffbeb", "#b45309"] : ["排除", "#F1F1F0", "#6E6A60"]
     const dims = [["专业匹配", 35, 0.92], ["经验年限", 25, 0.8], ["产能 / 档期", 15, 0.85], ["报价", 15, 0.7], ["信誉 / 历史", 10, 0.9]]
+    const archived = !!matchedRole?.deletedAt || !!expert.readOnly
     const move = (review) => {
+      if (archived) return
       if (reviewCandidates(expert.projectId, [e.id], review)) {
         set({ drawer: null })
         toast(review === "passed" ? "已人工确认通过" : review === "excluded" ? "已人工确认排除" : "已恢复待人工确认")
@@ -1589,27 +2037,28 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       n("div", { className: "eo-drawer" },
         n("button", { className: "eo-x", "aria-label": "关闭专家详情", onClick: () => set({ drawer: null }) }, "✕"),
         n("h2", null, e.name),
+        n("p", { className: "eo-pool-role" }, "匹配画像：" + (matchedRole?.name || "历史画像") + (matchedRole?.deletedAt ? " · 画像已删除" : "")),
         n("div", { className: "eo-meta", style: { marginBottom: 8 } },
           n("span", null, e.src === "原识" ? "原识平台" : e.src === "飞书" ? "飞书表单" : "业务手填"),
           n("span", null, e.city + " · " + e.years + " 年 · " + e.rate + " 元/小时")),
         n("div", { style: { display: "flex", alignItems: "center", gap: 8 } },
           n("span", { className: "eo-tag", style: { background: status[1], color: status[2] } }, status[0]),
-          n("span", { style: { fontSize: 11.5, color: "#9ca3af" } }, "AI 综合分"),
-          n("b", { style: { fontSize: 17, color: "#1d4ed8" } }, e.score)),
-        n("h3", { style: { margin: "15px 0 6px", fontSize: 12.3, color: "#374151" } }, "维度评分"),
+          n("span", { style: { fontSize: 11.5, color: "#91888A" } }, "AI 综合分"),
+          n("b", { style: { fontSize: 17, color: "#B4623E" } }, e.score)),
+        n("h3", { style: { margin: "15px 0 6px", fontSize: 12.3, color: "#2C2A27" } }, "维度评分"),
         dims.map(([k, w, r]) => n("div", { className: "eo-dim", key: k },
-          n("div", { className: "r" }, n("span", null, k, " ", n("span", { style: { color: "#9ca3af" } }, "(" + w + ")")),
+          n("div", { className: "r" }, n("span", null, k, " ", n("span", { style: { color: "#91888A" } }, "(" + w + ")")),
             n("span", null, Math.round(w * r) + "/" + w)),
           n("div", { className: "eo-bar" }, n("i", { style: { width: Math.round(r * 100) + "%" } })))),
-        n("h3", { style: { margin: "13px 0 4px", fontSize: 12.3, color: "#374151" } }, "匹配理由"),
+        n("h3", { style: { margin: "13px 0 4px", fontSize: 12.3, color: "#2C2A27" } }, "匹配理由"),
         n("div", { className: "eo-why", style: { fontSize: 12.1 } }, e.why),
-        n("h3", { style: { margin: "13px 0 4px", fontSize: 12.3, color: "#374151" } }, "缺口与追问"),
+        n("h3", { style: { margin: "13px 0 4px", fontSize: 12.3, color: "#2C2A27" } }, "缺口与追问"),
         n("div", { className: "eo-why gap", style: { fontSize: 12.1 } }, e.gap || "无"),
-        n("div", { className: "eo-dwacts" },
+        archived ? n("p", { className: "eo-role-note" }, "画像已删除：仅查看历史匹配与人工结论。") : n("div", { className: "eo-dwacts" },
           n("button", { className: "eo-btn g", onClick: () => move("passed") }, "审核通过"),
           n("button", { className: "eo-btn y", onClick: () => move("pending") }, "撤销人工结论"),
           n("button", { className: "eo-btn r", onClick: () => move("excluded") }, "排除")),
-        n("div", { style: { fontSize: 11.2, color: "#9ca3af", marginTop: 8 } }, "人工结论独立于 AI 推荐；本机保存，数据库与审核日志待接入。")))
+        n("div", { style: { fontSize: 11.2, color: "#91888A", marginTop: 8 } }, "人工结论独立于 AI 推荐；本机保存，数据库与审核日志待接入。")))
   }
 
   // ---------------- 注册 ----------------

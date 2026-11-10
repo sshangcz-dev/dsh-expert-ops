@@ -1,0 +1,16 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+const src=fs.readFileSync(process.argv[2]||'plugin/lib/client.js','utf8');
+const data=new Map();const c={crypto:{randomUUID},localStorage:{getItem:k=>data.get(k)??null,setItem:(k,v)=>data.set(k,v)},store:{artifactDrafts:{},artifactRevision:0,candidateReceipts:{d1:{e1:{review:'passed'}}}}};c.set=x=>Object.assign(c.store,x);vm.createContext(c);
+const start=src.indexOf('  const PROFILE_SCHEMA'), end=src.indexOf('  const RECRUITMENT_RESULTS');
+vm.runInContext(src.slice(start,end)+`\nconst RECRUITMENT_RESULTS={d1:{profile:{专业背景:'原背景'},jd:{职位名称:'原岗位',招募人数:40},source:null}};`+src.slice(src.indexOf('  const artifactKey'),src.indexOf('  function ProfileCriteriaCard'))+'\nthis.api={loadRoles,createRole,deleteRole,saveProfile,saveArtifact,loadProfile,candidateRoleId,rolesKey,profileKey,artifactKey,JD_FIELDS}',c);
+const a=c.api;
+data.set(a.profileKey('d1'),JSON.stringify({conditions:{years:{value:5},abilities:{value:'已手改能力'}}}));
+data.set(a.artifactKey('d1','jd'),JSON.stringify({values:{职位名称:'已手改岗位',招募人数:12}}));
+let roles=a.loadRoles('d1');assert.equal(roles.length,2);assert.equal(roles[0].profile.conditions.years.value,5);assert.equal(roles[0].jd.职位名称,'已手改岗位');
+const id=a.createRole('d1','新画像');assert.equal(a.loadRoles('d1').length,3);assert.throws(()=>a.createRole('d1','新画像'));assert.equal(a.loadRoles('p2').length,0);
+const p=a.loadProfile('d1',id);p.conditions.abilities.value='新画像能力';a.saveProfile('d1',p,id);a.saveArtifact('d1','jd',a.JD_FIELDS,{职位名称:'新岗位',招募人数:3},id);
+assert.equal(a.loadRoles('d1').find(r=>r.id===id).jd.职位名称,'新岗位');assert.equal(a.loadProfile('d1','main').conditions.abilities.value,'已手改能力');
+const receipt=JSON.stringify(c.store.candidateReceipts);a.deleteRole('d1','main');roles=a.loadRoles('d1');assert.ok(roles.find(r=>r.id==='main').deletedAt);assert.equal(roles.find(r=>r.id==='main').jd.职位名称,'已手改岗位');assert.equal(JSON.stringify(c.store.candidateReceipts),receipt);assert.throws(()=>a.saveProfile('d1',p,'main'));
+assert.equal(a.candidateRoleId({id:'demo-expert-02'},'d1'),'quality');assert.equal(a.candidateRoleId({id:'demo-expert-01'},'d1'),'main');assert.equal(a.candidateRoleId({id:'e',roleByProject:{d1:id}},'d1'),id);
+const stored=data.get(a.rolesKey('d1'));c.store.artifactDrafts['d1:role:'+id+':profile:v2']=p;c.localStorage.setItem=()=>{throw Error('quota')};assert.throws(()=>a.saveProfile('d1',p,id));assert.ok(c.store.artifactDrafts['d1:role:'+id+':profile:v2']);assert.equal(data.get(a.rolesKey('d1')),stored);
+console.log('PASS: legacy migration; independent profiles/JDs; project isolation; nullable manual profile; soft delete preserves history; one role per expert; failed saves retain drafts');

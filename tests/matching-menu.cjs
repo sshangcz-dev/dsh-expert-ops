@@ -1,0 +1,12 @@
+const fs=require('node:fs'),vm=require('node:vm'),assert=require('node:assert/strict');
+const src=fs.readFileSync(process.argv[2]||'plugin/lib/client.js','utf8');
+const c={};vm.createContext(c);
+vm.runInContext(src.slice(src.indexOf('  function candidateRoleId'),src.indexOf('  function ProfileCriteriaCard'))+src.slice(src.indexOf('  function matchingRoles'),src.indexOf('  function MatchingView'))+'\nthis.group=matchingRoles',c);
+const roles=[{id:'main',name:'转写'},{id:'quality',name:'质检'},{id:'empty',name:'新增画像'},{id:'deleted-empty',deletedAt:'now'}];
+const experts=[{id:'demo-expert-01',candidateProjectIds:['d1']},{id:'demo-expert-02',candidateProjectIds:['d1']},{id:'other',candidateProjectIds:['d2']},{id:'legacy',candidateProjectIds:['d1'],roleByProject:{d1:'missing'}}];
+let g=c.group('d1',roles,experts);assert.equal(g.active.length,3);assert.equal(g.active[2].experts.length,0);assert.equal(g.archived.length,1);assert.equal(g.archived[0].experts[0].id,'legacy');
+assert.equal(g.active[0].experts.length,1);assert.equal(g.active[1].experts.length,1);
+const before=JSON.stringify(experts);roles[0].deletedAt='now';g=c.group('d1',roles,experts);assert.equal(g.active.length,2);assert.equal(g.archived.length,2);assert.equal(g.archived.find(x=>x.role.id==='main').experts[0].id,'demo-expert-01');assert.equal(JSON.stringify(experts),before);
+assert.equal(new Set([...g.active,...g.archived].flatMap(x=>x.experts.map(e=>e.id))).size,3);assert.equal(c.group('d2',roles,experts).archived[0].experts.length,1);
+assert.ok(!src.includes('aria-label": "匹配画像"'));assert.ok(src.includes('n(MatchingView,'));
+console.log('PASS: profile menu; empty new profile; exclusive project membership; soft-delete archive; missing historical metadata; no candidate reassignment; removed profile dropdown');
