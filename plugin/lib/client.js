@@ -322,13 +322,15 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
 .eo-why.gap{color:#b45309}
 /* Native DSH conversation: only container sizing, no host CSS class overrides. */
 
-.eo-project-layout{grid-template-columns:minmax(0,1fr) minmax(280px,var(--eo-agent-width,34%));background:var(--eo-page);overflow:hidden;transition:grid-template-columns .24s cubic-bezier(.2,.8,.2,1)}
-.eo-project-layout>.eo-agent{order:2;border:0;border-left:1px solid #e2e5eb;background:#fff;width:100%;max-width:none;margin:0;padding:0 12px 10px;overflow:hidden;box-sizing:border-box}
+.eo-project-layout{display:flex;background:var(--eo-page);overflow:hidden}
+.eo-project-layout>.eo-agent{order:2;flex:1 1 auto;border:0;background:#fff;width:auto;max-width:none;min-width:0;margin:0;padding:0 12px 10px;overflow:hidden;box-sizing:border-box}
+.eo-project-layout.panel-open>.eo-agent{border-left:1px solid #e2e5eb}
 .eo-project-layout .eo-ahead,.eo-project-layout .eo-chat-context{display:none}
 .eo-agent-hint{margin:14px 2px 0;padding:14px;border:1px dashed #d9dce2;border-radius:12px;background:#fbfbfc;color:#6E6A60;font-size:12px;line-height:1.7}
 .eo-agent-hint p{margin:0 0 10px}
 .eo-agent-hint-actions{display:flex;gap:6px;flex-wrap:wrap}
-.eo-business-panel{order:1;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;background:var(--eo-page);border:0;border-right:1px solid #e2e5eb;opacity:1;visibility:visible;transform:none}
+.eo-business-panel{order:1;flex:0 0 auto;width:0;min-width:0;min-height:0;display:flex;flex-direction:column;position:relative;background:var(--eo-page);border:0;overflow:hidden;opacity:0;visibility:hidden;transition:width .26s cubic-bezier(.2,.8,.2,1),opacity .18s}
+.eo-project-layout.panel-open>.eo-business-panel{width:calc(100% - var(--eo-agent-width,34%));opacity:1;visibility:visible}
 .eo-panel-anim{animation:eoPanelIn .26s cubic-bezier(.2,.8,.2,1) both}
 @keyframes eoPanelIn{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:translateX(0)}}
 .eo-panel-header{display:flex;align-items:center;gap:8px;padding:8px 12px;background:#fff;border-bottom:1px solid var(--eo-line);flex-shrink:0;white-space:nowrap}
@@ -700,25 +702,6 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       n("circle", { cx: 11.5, cy: 10.9, r: 1.45, fill: "currentColor", stroke: "none" }))
   }
 
-  // 项目概览（未选择具体功能时，显示在中间看板区）
-  function ProjectOverview({ project, onOpen }) {
-    if (!project) return null
-    const cards = [
-      ["recruitment", "岗位要求", "上传甲方需求 PDF / Word，解析岗位 JD 与专家画像"],
-      ["p3", "专家匹配", "按画像匹配专家，查看 AI 建议并人工审核"],
-    ]
-    return n("div", { className: "eo-canvas eo-panel-content eo-panel-anim", key: "overview" },
-      n("section", { style: { padding: "22px 6px 4px" } },
-        n("h2", { style: { margin: "0 0 8px", fontSize: 18, fontWeight: 650, color: "#1f2937" } }, project.title),
-        n("p", { style: { margin: "0 0 18px", fontSize: 12.5, lineHeight: 1.8, color: "#6E6A60" } }, "选择一项功能开始；也可以直接在右侧对话里让 Agent 起草岗位要求或发起专家匹配。"),
-        n(ProjectHomeCards, { project })),
-      n("div", { style: { display: "grid", gridTemplateColumns: "repeat(2,minmax(0,1fr))", gap: 12, marginTop: 20, padding: "0 6px" } },
-        cards.map(([tab, title, desc]) =>
-          n("button", { key: tab, type: "button", onClick: () => onOpen(tab), style: { display: "block", width: "100%", textAlign: "left", padding: "16px", border: "1px solid #e6e8ec", borderRadius: 14, background: "#fff", cursor: "pointer", font: "inherit" } },
-            n("strong", { style: { display: "block", fontSize: 13.5, color: "#1f2937", marginBottom: 6 } }, title),
-            n("span", { style: { display: "block", fontSize: 12, lineHeight: 1.7, color: "#6E6A60" } }, desc)))))
-  }
-
   // ---------------- 工作台 ----------------
   function Workbench({ sessions, SessionProvider, renderSlot }) {
     const s = useStore()
@@ -762,23 +745,22 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
                 ? n("button", { className: "eo-title-btn", type: "button", title: "打开项目业务面板",
                     onClick: () => openProjectSpace(active.id, lastFeature.current) }, active.title)
                 : (knowledge ? "知识库" : library ? "专家库" : active?.title || "暂无项目")))),
-          n("div", { ref: bodyRef, className: "eo-body" + (projectMode ? " eo-project-layout" + (resizing ? " is-resizing" : "") : ""),
+          n("div", { ref: bodyRef, className: "eo-body" + (projectMode ? " eo-project-layout" + (panelOpen ? " panel-open" : "") + (resizing ? " is-resizing" : "") : ""),
             style: projectMode ? { "--eo-agent-width": agentWidth + "%" } : undefined },
-            projectMode ? n("section", { className: "eo-business-panel", "aria-label": "项目业务面板" },
-              n("div", { className: "eo-panel-resizer", role: "separator", "aria-label": "调整中间看板与右侧 Agent 的宽度", "aria-orientation": "vertical", "aria-valuemin": 26, "aria-valuemax": 52, "aria-valuenow": agentWidth, tabIndex: 0,
+            projectMode ? n("section", { className: "eo-business-panel", "aria-label": "项目业务面板", "aria-hidden": !panelOpen, inert: !panelOpen ? "" : undefined },
+              panelOpen ? n("div", { className: "eo-panel-resizer", role: "separator", "aria-label": "调整中间看板与右侧 Agent 的宽度", "aria-orientation": "vertical", "aria-valuemin": 26, "aria-valuemax": 52, "aria-valuenow": agentWidth, tabIndex: 0,
                 onPointerDown: (event) => { if (event.button !== 0) return; event.preventDefault(); event.currentTarget.setPointerCapture(event.pointerId); setResizing(true) },
                 onPointerMove: (event) => { if (!event.currentTarget.hasPointerCapture(event.pointerId)) return; const rect = bodyRef.current?.getBoundingClientRect(); if (rect?.width) setAgentWidth(Math.max(26, Math.min(52, (rect.right - event.clientX) / rect.width * 100))) },
                 onPointerUp: (event) => { if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId); setResizing(false) },
                 onLostPointerCapture: () => setResizing(false),
                 onDoubleClick: () => setAgentWidth(34),
-                onKeyDown: (event) => { if (!["ArrowLeft", "ArrowRight", "Home"].includes(event.key)) return; event.preventDefault(); setAgentWidth((width) => event.key === "Home" ? 34 : Math.max(26, Math.min(52, width + (event.key === "ArrowLeft" ? 2 : -2)))) } }),
-              n("header", { className: "eo-panel-header" },
-                n("h2", null, home ? "项目概览" : featureTitle),
-                home ? null : n("button", { className: "eo-panel-close", title: "关闭业务面板", "aria-label": "关闭业务面板", onClick: () => { openProjectSpace(active.id, "home"); bodyRef.current?.querySelector('.eo-home-card')?.focus() } }, "×")),
-              home ? n(ProjectOverview, { project: active, onOpen: (tab) => openProjectSpace(active.id, tab) })
-                : n("div", { key: active.id + ":" + feature, className: "eo-canvas eo-panel-content eo-panel-anim" },
+                onKeyDown: (event) => { if (!["ArrowLeft", "ArrowRight", "Home"].includes(event.key)) return; event.preventDefault(); setAgentWidth((width) => event.key === "Home" ? 34 : Math.max(26, Math.min(52, width + (event.key === "ArrowLeft" ? 2 : -2)))) } }) : null,
+              panelOpen ? n("header", { className: "eo-panel-header" },
+                n("h2", null, featureTitle),
+                n("button", { className: "eo-panel-close", title: "收起业务面板", "aria-label": "收起业务面板", onClick: () => { openProjectSpace(active.id, "home"); bodyRef.current?.querySelector('.eo-home-card')?.focus() } }, "×")) : null,
+              panelOpen ? n("div", { key: active.id + ":" + feature, className: "eo-canvas eo-panel-content eo-panel-anim" },
                     active ? n("div", { hidden: feature !== "recruitment" }, n(RecruitmentView, { key: active.id, demandId: active.id, result: recruitment })) : null,
-                    active ? n("div", { hidden: feature !== "p3" }, n(MatchingView, { key: active.id, projectId: active.id, experts: projectExperts })) : null)) :
+                    active ? n("div", { hidden: feature !== "p3" }, n(MatchingView, { key: active.id, projectId: active.id, experts: projectExperts })) : null) : null) :
               n("div", { className: "eo-canvas" }, knowledge ? n(KnowledgeView) : n(ExpertLibraryView)),
             projectMode ? n(AgentPanel, { key: active?.id || "none", project: active, home: true, panelOpen, sessions, SessionProvider, renderSlot }) :
               knowledge ? n(KnowledgeAgent) : n(ExpertLibraryPanel)),
@@ -2036,10 +2018,7 @@ window.__ModuleLoader__.load({ id: "dsh-expert-ops", factory: (require) => {
       n("div", { className: "eo-ahead" }, "运营 Agent", n("span", { className: "st" }, reference ? "DSH 原生会话" : error ? "连接失败" : "正在连接")),
       n("div", { className: "eo-chat-context", title: project?.title }, project ? project.title + " · 独立对话" : "请先新建项目"),
       panelOpen && blank && project ? n("div", { className: "eo-agent-hint" },
-        n("p", null, "在中间看板填入需求，或直接在这里让 Agent 起草岗位要求。"),
-        n("div", { className: "eo-agent-hint-actions" },
-          n("button", { className: "eo-btn", onClick: () => openProjectSpace(project.id, "recruitment") }, "岗位要求"),
-          n("button", { className: "eo-btn", onClick: () => openProjectSpace(project.id, "p3") }, "专家匹配"))) : null,
+        n("p", null, "在中间看板填入需求；需要 Agent 起草时，直接在这里描述即可。")) : null,
       n("div", { className: "eo-native-chat" }, reference ? n(ProjectHomeContext.Provider, { value: home && project ? { ...project, showWelcome: blank && !panelOpen } : null }, n(SessionProvider, { session: reference }, renderSlot("expert-ops.conversation", {}))) :
         n("div", { className: "eo-chat-state", role: error ? "alert" : "status" }, error || (project ? "正在加载项目会话…" : "暂无项目"),
           error ? n("button", { className: "eo-btn", onClick: () => setAttempt((x) => x + 1) }, "重试连接") : null)))
