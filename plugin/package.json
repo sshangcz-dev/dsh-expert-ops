@@ -1,6 +1,6 @@
 {
   "name": "dsh-expert-ops",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "type": "module",
   "description": "专家运营工作台：需求解析、专家画像、三态匹配看板（mock 数据）",
