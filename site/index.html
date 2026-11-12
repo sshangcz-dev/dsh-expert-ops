@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>专家运营工作台 · DSH 插件</title>
+<meta name="description" content="面向专家招募与审核的 DSH 工作台：项目导航、原生 Agent 对话、画像筛选与候选人审核面板。">
+<style>
+ :root{--bg:#fff;--ink:#141413;--muted:#6E6A60;--faint:#91888A;--line:#E9E9E9;--accent:#D97757;--soft:#F5F3EE;--card:#FCFBFA}
+ *{box-sizing:border-box}
+ html{scroll-behavior:smooth}
+ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.75 -apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue",Arial,sans-serif;-webkit-font-smoothing:antialiased}
+ a{color:inherit}
+ .wrap{max-width:1080px;margin:0 auto;padding:0 24px}
+ header.site{position:sticky;top:0;z-index:9;background:rgba(255,255,255,.9);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+ header.site .wrap{display:flex;align-items:center;gap:18px;height:58px}
+ .brand{display:flex;align-items:center;gap:9px;font-weight:700;letter-spacing:-.01em}
+ .brand i{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#E9B7A5,#D97757);display:block}
+ nav.menu{margin-left:auto;display:flex;gap:18px;font-size:13.5px;color:var(--muted)}
+ nav.menu a{text-decoration:none}
+ nav.menu a:hover{color:var(--ink)}
+ .hero{padding:72px 0 40px;border-bottom:1px solid var(--line)}
+ .kicker{display:inline-flex;align-items:center;gap:7px;font-size:12px;color:var(--muted);background:var(--soft);border-radius:999px;padding:4px 11px}
+ .kicker b{color:var(--accent);font-weight:600}
+ h1{font-size:40px;line-height:1.2;letter-spacing:-.02em;margin:18px 0 14px;max-width:760px}
+ h1 em{font-style:normal;color:var(--accent)}
+ .lede{font-size:16.5px;color:var(--muted);max-width:640px;margin:0 0 26px}
+ .cta{display:flex;gap:10px;flex-wrap:wrap}
+ .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:9px;padding:9px 16px;font-size:14px;text-decoration:none;background:#fff;transition:.15s}
+ .btn:hover{border-color:#D8D4CC;background:var(--soft)}
+ .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+ .btn.primary:hover{background:#C9683F;border-color:#C9683F}
+ section{padding:56px 0}
+ section + section{border-top:1px solid var(--line)}
+ h2{font-size:24px;letter-spacing:-.01em;margin:0 0 8px}
+ .sub{color:var(--muted);margin:0 0 28px}
+ .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+ .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 18px}
+ .card h3{font-size:15px;margin:0 0 6px}
+ .card p{margin:0;font-size:13.5px;color:var(--muted);line-height:1.7}
+ .num{font-size:12px;color:var(--accent);font-weight:700;letter-spacing:.06em}
+ .shots{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+ figure{margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card)}
+ figure img{display:block;width:100%;height:auto;border-bottom:1px solid var(--line)}
+ figcaption{padding:10px 14px;font-size:12.5px;color:var(--muted)}
+ .install{background:var(--soft);border:1px solid #EDE9E2;border-radius:14px;padding:20px 22px}
+ pre{margin:12px 0 0;background:#151413;color:#F5F3EE;border-radius:10px;padding:14px 16px;overflow:auto;font:12.5px/1.7 ui-monospace,SFMono-Regular,Menlo,monospace}
+ .note{font-size:12.5px;color:var(--faint);margin-top:14px}
+ footer.site{border-top:1px solid var(--line);padding:28px 0 44px;color:var(--faint);font-size:12.5px}
+ @media(max-width:860px){.grid3{grid-template-columns:1fr}.shots{grid-template-columns:1fr}h1{font-size:31px}nav.menu{display:none}}
+</style>
+</head>
+<body>
+<header class="site"><div class="wrap">
+  <span class="brand"><i></i>专家运营工作台</span>
+  <nav class="menu"><a href="#features">能力</a><a href="#shots">界面</a><a href="#install">安装</a><a href="prototype.html">交互原型</a></nav>
+</div></header>
+
+<div class="hero"><div class="wrap">
+  <span class="kicker">DSH 插件 · <b>v0.1.0</b> 内测</span>
+  <h1>把需求文档变成画像，<br>把画像变成<em>可审核的候选人名单</em></h1>
+  <p class="lede">面向专家招募与审核的 DSH 工作台：左侧项目导航、中间原生 Agent 对话、右侧业务面板。解析需求 → 生成画像 → 匹配专家 → 人工审核，全部在同一个界面里完成。</p>
+  <div class="cta">
+    <a class="btn primary" href="prototype.html">打开交互原型 →</a>
+    <a class="btn" href="https://github.com/sshangcz-dev/dsh-expert-ops">查看源码</a>
+  </div>
+</div></div>
+
+<section id="features"><div class="wrap">
+  <h2>它解决什么</h2>
+  <p class="sub">不是聊天机器人，而是一张能推进项目的工作台。</p>
+  <div class="grid3">
+    <div class="card"><span class="num">01</span><h3>需求 → 画像</h3><p>从项目需求文档中抽取行业、规模、地域、角色、预算与排除条件，形成可编辑、带出处的结构化画像。</p></div>
+    <div class="card"><span class="num">02</span><h3>画像 → 候选人</h3><p>按画像在候选池中召回专家，给出 AI 判断（推荐 / 待确认 / 建议排除）与匹配理由，而不是只有一个分数。</p></div>
+    <div class="card"><span class="num">03</span><h3>人工审核闭环</h3><p>批量通过、排除、恢复待确认；审核结果留痕，未读变动在卡片上以 +N 提示，滚动时监控卡片始终置顶。</p></div>
+  </div>
+</div></section>
+
+<section id="shots"><div class="wrap">
+  <h2>界面</h2>
+  <p class="sub">真实运行截图（DSH 宿主内，Claude 浅色皮肤）。</p>
+  <div class="shots">
+    <figure><img src="shots/native-layout-home.png" alt="项目首页"><figcaption>项目首页：项目卡片、功能入口与 Agent 对话并排</figcaption></figure>
+    <figure><img src="shots/native-panel-open.png" alt="业务面板展开"><figcaption>业务面板展开：顶栏操作、监控卡片吸顶</figcaption></figure>
+    <figure><img src="shots/native-board.png" alt="专家匹配看板"><figcaption>专家匹配：AI 判断分组、筛选、批量审核</figcaption></figure>
+    <figure><img src="shots/native-drawer.png" alt="专家详情抽屉"><figcaption>专家详情：画像、匹配理由与审核动作</figcaption></figure>
+  </div>
+</div></section>
+
+<section id="install"><div class="wrap">
+  <h2>安装</h2>
+  <p class="sub">需要一台已安装 DSH 的机器；插件跟随 profile 加载。</p>
+  <div class="install">
+    <pre>dsh plugin --profile desktop add link:/path/to/expert-ops/plugin</pre>
+    <p class="note">安装后重启 <code>dsh web</code>，左侧边栏出现「专家运营」入口。本页是静态展示：插件依赖 DSH 宿主的会话、工具与本地存储，无法单独运行在 Pages 上；上面的交互原型是纯前端演示，数据为示例。</p>
+  </div>
+</div></section>
+
+<footer class="site"><div class="wrap">专家运营工作台 · dsh-expert-ops · 截图与原型仅用于演示，数据为示例。</div></footer>
+</body>
+</html>
