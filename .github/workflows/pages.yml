@@ -21,11 +21,13 @@ jobs:
       - uses: actions/checkout@v4
       - name: Assemble static site
         run: |
-          mkdir -p _site/shots _site/preview
+          mkdir -p _site/shots _site/preview _site/demo
           cp site/index.html _site/index.html
           cp prototype.html _site/prototype.html
           cp shots/*.png _site/shots/
           cp site/preview/*.html _site/preview/
+          cp site/demo/index.html _site/demo/index.html
+          cp -r site/vendor _site/vendor
       - uses: actions/configure-pages@v5
         with:
           enablement: true
